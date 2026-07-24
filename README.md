@@ -13,15 +13,11 @@ without aiming to become a full ERP.
 
 This project is developed as a **Master's Thesis (TFM)**.
 
----
-
 ## Project status
 
-🚧 **Early development.** The repository foundation is currently being set up
+**Early development.** The repository foundation is currently being set up
 (governance, CI/CD, templates). The code structure and dependencies will be
 added as development progresses.
-
----
 
 ## Tech stack
 
@@ -34,8 +30,6 @@ added as development progresses.
 | Storage        | Amazon S3 (documents and images)    |
 | Messaging      | Telegram bot                        |
 | Deployment     | Render (backend) · MongoDB Atlas    |
-
----
 
 ## Monorepo structure
 
@@ -52,14 +46,12 @@ ordo/
 > The internal structure of each package will be documented as it is defined
 > during development.
 
----
-
 ## Git workflow
 
 A simplified *git-flow* is used, with two protected branches:
 
 ```text
-feature/*  ─PR→  develop  ─PR→  main
+feat/*     ─PR→  develop  ─PR→  main
 fix/*      ─┘               (release)
 chore/*    ─┘
 ```
@@ -67,8 +59,6 @@ chore/*    ─┘
 - **`main`** — stable / release branch.
 - **`develop`** — day-to-day integration branch.
 - Every change is merged through a *Pull Request* and must pass the CI pipeline.
-
----
 
 ## Contributing
 

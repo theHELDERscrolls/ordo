@@ -9,12 +9,12 @@
 
 ## Type of change
 
-- [ ] 🐛 Bug fix (`fix`)
-- [ ] ✨ New feature (`feat`)
-- [ ] ♻️ Refactor (no behavior change)
-- [ ] 📝 Documentation (`docs`)
-- [ ] 🔧 Configuration / tooling / CI (`chore` / `ci`)
-- [ ] ⚠️ Breaking change
+- [ ] Bug fix (`fix`)
+- [ ] New feature (`feat`)
+- [ ] Refactor (no behavior change)
+- [ ] Documentation (`docs`)
+- [ ] Configuration / tooling / CI (`chore` / `ci`)
+- [ ] Breaking change
 
 ## Related issues
 

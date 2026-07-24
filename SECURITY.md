@@ -13,8 +13,8 @@ version.
 
 | Version              | Supported          |
 | -------------------- | ------------------ |
-| `main` (latest)      | :white_check_mark: |
-| Older commits        | :x:                |
+| `main` (latest)      | Yes                |
+| Older commits        | No                 |
 
 The production branch is `main`; active development happens on `develop`.
 

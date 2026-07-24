@@ -30,5 +30,5 @@ jobs:
       # will be added here once their respective package.json files exist.
       - name: Pipeline status
         run: |
-          echo "✅ Base CI pipeline is operational."
+          echo "Base CI pipeline is operational."
           echo "Pending: add backend and frontend jobs once they exist."

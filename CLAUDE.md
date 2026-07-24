@@ -12,6 +12,7 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 ## Conventions
 - All repository files in English (code, comments, docs).
 - Commits follow Conventional Commits and are a single line.
+- Do not use emojis or `---` separator lines in any file. Emojis are allowed only when functionally necessary, never for decoration or headings.
 
 ## Git workflow
 - `main` and `develop` are protected.
