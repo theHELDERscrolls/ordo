@@ -1,0 +1,34 @@
+name: CI
+
+# Runs on every PR to develop or main, and on pushes to those branches.
+# This covers both hops of the flow: feature -> develop  and  develop -> main.
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+# Cancel older in-progress runs for the same branch/PR to save minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal default permissions (security best practice).
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Base pipeline. There is no code or dependencies to build yet.
+      # The backend and frontend jobs (install, lint, typecheck, test, build)
+      # will be added here once their respective package.json files exist.
+      - name: Pipeline status
+        run: |
+          echo "✅ Base CI pipeline is operational."
+          echo "Pending: add backend and frontend jobs once they exist."

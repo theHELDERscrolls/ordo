@@ -1,0 +1,46 @@
+name: "✨ Feature request"
+description: Suggest a new feature or improvement for Ordo
+title: "[Feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Describe the idea in as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need
+      description: What problem does this feature solve? Why is it useful?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe how it should work.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Backend (API)
+        - Frontend (Web)
+        - Telegram bot
+        - CI/CD / Infrastructure
+        - Other / Cross-cutting
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered other options?
+    validations:
+      required: false
