@@ -35,6 +35,9 @@ coverage/
 frontend/dist/
 frontend/.vite/
 
+# Claude Code (commit shared settings, ignore personal overrides)
+.claude/settings.local.json
+
 # Editors and operating system
 .DS_Store
 Thumbs.db
