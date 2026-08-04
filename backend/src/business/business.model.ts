@@ -5,7 +5,6 @@ import { Schema, model } from 'mongoose';
 // because a sub-object does not need its own identity.
 const brandingSchema = new Schema(
   {
-    displayName: { type: String, required: true },
     logoUrl: { type: String },
     faviconUrl: { type: String },
     accentColor: { type: String, required: true },

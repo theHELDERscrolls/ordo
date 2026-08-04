@@ -8,7 +8,6 @@ import { z } from 'zod';
 // and image URLs are stored per tenant; the neutral theme layers live in the
 // frontend CSS, not in the database.
 export const brandingSchema = z.object({
-  displayName: z.string().min(1),
   logoUrl: z.url().optional(),
   faviconUrl: z.url().optional(),
   accentColor: z
@@ -30,7 +29,7 @@ export const businessSchema = z.object({
 export type Business = z.infer<typeof businessSchema>;
 
 // Roles a user can hold inside their business. Single source of truth for both sides.
-export const userRoles = ['owner', 'staff'] as const;
+export const userRoles = ['admin', 'employee'] as const;
 export const userRoleSchema = z.enum(userRoles);
 export type UserRole = z.infer<typeof userRoleSchema>;
 

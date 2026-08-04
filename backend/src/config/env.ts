@@ -15,4 +15,5 @@ function required(name: string): string {
 export const env = {
   port: Number(process.env.PORT) || 3000,
   mongodbUri: required('MONGODB_URI'),
+  jwtSecret: required('JWT_SECRET'),
 };
