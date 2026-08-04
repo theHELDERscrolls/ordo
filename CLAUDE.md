@@ -4,7 +4,7 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 
 ## Stack
 - Monorepo: `backend/` (Node + Express + TypeScript, MongoDB + Mongoose), `frontend/` (React + TypeScript + Vite, Tailwind with custom components), `docs/`.
-- Files/storage: AWS S3. Bot: Telegram. Deploy: Render + MongoDB Atlas.
+- Files/storage: Cloudinary. Bot: Telegram. Deploy: Render (backend) + Vercel (frontend) + MongoDB Atlas.
 
 ## Architecture
 - Both `frontend/` and `backend/` are organized by domain (DDD-inspired). Grow the structure only when needed — do not scaffold ahead.
@@ -13,6 +13,7 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 - All repository files in English (code, comments, docs).
 - Commits follow Conventional Commits and are a single line.
 - Do not use emojis or `---` separator lines in any file. Emojis are allowed only when functionally necessary, never for decoration or headings.
+- Never attribute commits, PRs, or any content to Claude or AI: no `Co-Authored-By` trailers, no "Generated with" lines, no AI mentions anywhere.
 
 ## Agentic workflow
 - Logic / backend work: apply the ponytail skill — laziest solution that works, stdlib and native platform features before new dependencies.
@@ -25,8 +26,11 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 - ALWAYS ask the user to confirm before running ANY git command — especially branch create/delete, `add`, `commit`, `push`. The user runs these. This is hard-enforced via the `ask` permission on `Bash(git:*)` and `Bash(gh:*)` in `.claude/settings.json`.
 
 ## After each implementation
+- Verify it works before claiming done: do not assume. Run a clean rebuild (clear the build output, then `npm run build`) so the result is reproducible and not a stale artifact, and then exercise the real behavior (run the app / hit the endpoint via the verify or run skill), not just typecheck. Report failures with their actual output; never report a path as done without running it.
 - Review the docs for what changed, update them, then bump the version accordingly (CHANGELOG + package version).
 
 ## Build & test
-- Not set up yet. Added per package once dependencies are installed.
+- Workspace-wide from the repo root: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test`. Single package: append `-w @ordo/<backend|frontend|shared>`.
+- Dev runners: `npm run dev -w @ordo/backend` (tsx watch), `npm run dev -w @ordo/frontend` (vite).
+- Remove `--passWithNoTests` from a package once it has its first test, so "no tests found" fails loudly again.
 ```
