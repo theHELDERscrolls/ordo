@@ -48,8 +48,8 @@ export type User = z.infer<typeof userSchema>;
 // frontend form. password only needs to be non-empty here: strength rules belong
 // to registration (which Ordo does not expose), not to login.
 export const loginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1),
+  email: z.email('Enter a valid email'),
+  password: z.string().min(1, 'Enter your password'),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 

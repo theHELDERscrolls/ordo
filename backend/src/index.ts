@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { env } from './config/env.js';
 import { connectDb } from './config/db.js';
-import { authRouter } from './auth/auth.routes.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 
 const app = express();
 

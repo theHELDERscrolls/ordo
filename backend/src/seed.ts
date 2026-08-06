@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { connectDb } from './config/db.js';
-import { Business } from './business/business.model.js';
-import { User } from './user/user.model.js';
-import { hashPassword } from './auth/password.js';
+import { Business } from './modules/business/business.model.js';
+import { User } from './modules/user/user.model.js';
+import { hashPassword } from './modules/auth/password.js';
 
 // Dev-only bootstrap: provisions one Business and its owner so login works end to
 // end. Wipes first so it stays reproducible (safe: development database only).
