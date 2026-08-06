@@ -4,22 +4,35 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "develop"
     commit-message:
       prefix: "ci"
     labels:
       - "dependencies"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
-  # Single npm entry: the workspace lockfile lives at the repo root and
-  # covers backend, frontend and shared.
+  # Single npm entry: the workspace lockfile lives at the repo root and covers
+  # backend, frontend and shared. Grouped into one monthly PR; major bumps are
+  # handled deliberately, not proposed automatically.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "develop"
     commit-message:
       prefix: "chore(deps)"
     labels:
       - "dependencies"
     open-pull-requests-limit: 10
+    groups:
+      npm:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
