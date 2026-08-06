@@ -17,7 +17,7 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 
 ## Agentic workflow
 - Logic / backend work: apply the ponytail skill — laziest solution that works, stdlib and native platform features before new dependencies.
-- Frontend / UI work: apply the frontend-design skill. Aesthetic is a simple black-and-white web with an invertible theme (light/dark); Tailwind with custom components, no UI component library.
+- Frontend / UI work: apply the frontend-design skill. The app is mobile-first: design for small screens first, then layer on larger breakpoints. Aesthetic is a simple black-and-white web with an invertible theme (light/dark); Tailwind with custom components, no UI component library.
 
 ## Git workflow
 - `main` and `develop` are protected.
