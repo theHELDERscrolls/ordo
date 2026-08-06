@@ -14,3 +14,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Frontend foundation: Tailwind v4 (Vite plugin), React Router, React Query, React Hook Form, lucide-react.
 - Shared tooling: root Prettier config (with Tailwind class sorting), Vitest per package.
 - CI jobs (install, lint, typecheck, build, test) and a consolidated root Dependabot npm entry.
+- Authentication: `POST /auth/login` issuing a JWT, Bearer-guarded routes with a sample `GET /auth/me`, and a development bootstrap seed.
+- Domain data layer: Mongoose models for `Business` (with embedded branding) and `User`, mirroring the shared Zod contracts.
+- Login UI: login page (React Hook Form + Zod), session context (`useReducer`/`useContext`), protected routing, and per-tenant white-label theming with a persistent light/dark toggle.
+- Domain-oriented layout: backend `modules/`, frontend `core`/`features`/`shared`, and a `@` path alias on the frontend.

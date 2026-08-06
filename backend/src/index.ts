@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import { env } from './config/env.js';
+import { connectDb } from './config/db.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 
 const app = express();
 
@@ -10,8 +13,17 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-const port = Number(process.env.PORT) || 3000;
+app.use('/auth', authRouter);
 
-app.listen(port, () => {
-  console.log(`backend listening on port ${port}`);
+// Connect to MongoDB before accepting traffic; fail loudly if the DB is unreachable.
+async function start(): Promise<void> {
+  await connectDb();
+  app.listen(env.port, () => {
+    console.log(`backend listening on port ${env.port}`);
+  });
+}
+
+start().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });
