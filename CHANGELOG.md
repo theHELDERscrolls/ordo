@@ -20,6 +20,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Domain-oriented layout: backend `modules/`, frontend `core`/`features`/`shared`, and a `@` path alias on the frontend.
 - Project documentation: a living `docs/` (index, architecture guide, and an `api/` reference with request/response JSON per endpoint) and a Getting started section in the root README.
 - Inventory backend: `Product` domain (Zod contract, Mongoose model with a per-business unique SKU and a derived `stockStatus`), role-aware CRUD API with search/filter/sort/pagination, and a `GET /dashboard/stats` snapshot. `employee` is read-only; `admin` manages.
+- Developer tooling: a `ship-pr` skill (`/ship-pr`) that automates the git-flow — logical commit split, CHANGELOG/version check, and a PR from the template.
 
 ### Changed
 - Root README now reflects the real state: Cloudinary (not S3) for storage, current project status, and the actual monorepo layout. Replaced the default Vite boilerplate in `frontend/README.md` with a real one.
+- Aligned the versioning policy in `CLAUDE.md` (no version bump on `develop`; bump, seal and tag only at release).
