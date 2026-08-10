@@ -29,10 +29,12 @@ Organized by domain (DDD-inspired), grown only as needed:
 backend/src/
 ├── config/     env parsing and the MongoDB connection
 ├── modules/    one folder per domain
-│   ├── auth/       login, JWT signing, Bearer middleware, password hashing
+│   ├── auth/       login, JWT, Bearer + role middleware, password hashing
 │   ├── business/   Business Mongoose model (embedded branding)
-│   └── user/       User Mongoose model (bcrypt hash, businessId)
-├── types/      Express request augmentation (req.userId)
+│   ├── user/       User model (bcrypt, businessId) + getAccessibleBusinessIds
+│   ├── product/    Product model + inventory CRUD and list API
+│   └── dashboard/  inventory stats endpoint
+├── types/      Express request augmentation (req.userId, req.user)
 ├── seed.ts     dev-only bootstrap of one Business + admin user
 └── index.ts    app wiring; connects to Mongo before listening
 ```
@@ -82,25 +84,27 @@ one; multi-tenancy is extra credit, not a requirement.
    `requireAuth` middleware verifies it and populates `req.userId` for protected
    routes such as `GET /auth/me`.
 
+## Inventory
+
+The Product domain is the app's core. A `Product` belongs to a business
+(`businessId`) and is identified within it by `sku` (compound unique index
+`businessId + sku`), which is the identity a future CSV import will upsert on. Key
+fields: `name`, `sku`, `category`, `supplier`, `unit`, `stock`, `minStock`
+(reorder point), `costPrice`, `salePrice`, `imageUrl`.
+
+`stockStatus` is derived, never stored: `out` when stock is 0, `low` when
+`0 < stock <= minStock`, otherwise `in`. It is a Mongoose virtual, so the reorder
+threshold lives in one place and drives both the list badge and the dashboard
+counts.
+
+Access is role-aware and tenant-scoped. Every query is filtered by
+`getAccessibleBusinessIds(user)` (today the user's own business), so one tenant
+never sees another's products. Writes (`POST`/`PATCH`/`DELETE`) require the
+`admin` role; reads are open to `admin` and `employee`. The `loadUser` middleware
+attaches the user (id, businessId, role) after `requireAuth`.
+
 ## HTTP API reference
 
-Base URL in development: `http://localhost:3000`.
-
-### `GET /health`
-
-Liveness check. Returns `200 { "status": "ok" }`. No authentication.
-
-### `POST /auth/login`
-
-Authenticate and open a session.
-
-- Body: `{ "email": string, "password": string }`.
-- `200`: `{ "token": string, "user": User, "business": Business }`.
-- `400`: invalid request body. `401`: invalid email or password.
-
-### `GET /auth/me`
-
-Return the current user and business. Requires `Authorization: Bearer <token>`.
-
-- `200`: `{ "user": User, "business": Business | null }`.
-- `401`: missing or invalid token. `404`: user not found.
+The REST API has its own home under [`api/`](./api/README.md): base URL,
+authentication, common error codes, and every endpoint with request/response JSON
+examples.
