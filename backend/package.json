@@ -10,7 +10,7 @@
     "build": "tsc -b",
     "typecheck": "tsc -b",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@ordo/shared": "^0.0.0",
