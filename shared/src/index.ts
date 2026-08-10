@@ -61,3 +61,69 @@ export const loginResponseSchema = z.object({
   business: businessSchema,
 });
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+// Stock status is DERIVED from stock vs minStock (the reorder point), never stored.
+// Single source of truth for the threshold, shared by API, UI badges and filters.
+export const stockStatuses = ['in', 'low', 'out'] as const;
+export const stockStatusSchema = z.enum(stockStatuses);
+export type StockStatus = z.infer<typeof stockStatusSchema>;
+
+// Product = public/wire shape. `businessId` identifies the tenant; `sku` is the
+// product's identity within that tenant. Quantities allow decimals (e.g. kg).
+export const productSchema = z.object({
+  id: z.string(),
+  businessId: z.string(),
+  name: z.string().min(1),
+  sku: z.string().min(1),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  supplier: z.string().optional(),
+  unit: z.string().min(1),
+  stock: z.number().nonnegative(),
+  minStock: z.number().nonnegative(),
+  costPrice: z.number().nonnegative(),
+  salePrice: z.number().nonnegative(),
+  imageUrl: z.url().optional(),
+  stockStatus: stockStatusSchema,
+});
+export type Product = z.infer<typeof productSchema>;
+
+// Create input: the client never sets `id`, `businessId` (taken from the session)
+// or the derived `stockStatus`. Quantities and prices default to 0.
+export const createProductSchema = z.object({
+  name: z.string().min(1),
+  sku: z.string().min(1),
+  unit: z.string().min(1),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  supplier: z.string().optional(),
+  stock: z.number().nonnegative().default(0),
+  minStock: z.number().nonnegative().default(0),
+  costPrice: z.number().nonnegative().default(0),
+  salePrice: z.number().nonnegative().default(0),
+  imageUrl: z.url().optional(),
+});
+export type CreateProductInput = z.infer<typeof createProductSchema>;
+
+// Update input: any subset of the creatable fields.
+export const updateProductSchema = createProductSchema.partial();
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+
+// Paginated list envelope returned by GET /products.
+export const productListResponseSchema = z.object({
+  items: z.array(productSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+});
+export type ProductListResponse = z.infer<typeof productListResponseSchema>;
+
+// The dashboard snapshot: figures computable from the current inventory alone
+// (no historical stock movements yet).
+export const dashboardStatsSchema = z.object({
+  productCount: z.number().int().nonnegative(),
+  lowStockCount: z.number().int().nonnegative(),
+  outOfStockCount: z.number().int().nonnegative(),
+  inventoryValue: z.number().nonnegative(),
+});
+export type DashboardStats = z.infer<typeof dashboardStatsSchema>;

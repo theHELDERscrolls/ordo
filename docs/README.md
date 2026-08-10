@@ -7,8 +7,10 @@ where it is. Files are not created empty ahead of need.
 
 ## Index
 
-- [Architecture](./architecture.md) — monorepo layout, how each package is
-  organized by domain, the authentication flow, and the HTTP API reference.
+- [Architecture](./architecture.md) — monorepo layout, domain organization, the
+  authentication flow, and the inventory domain (data model, roles, stock status).
+- [API reference](./api/README.md) — every HTTP endpoint with request/response
+  JSON examples.
 
 ## Where else things are documented
 
