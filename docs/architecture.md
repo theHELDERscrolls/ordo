@@ -50,12 +50,16 @@ Organized into cross-cutting core, domain features, and shared UI:
 frontend/src/
 ├── core/       cross-cutting concerns
 │   ├── api/        HTTP client
-│   ├── auth/       session context (useReducer + useContext), RequireAuth
+│   ├── auth/       session context, RequireAuth, useToken
+│   ├── hooks/      generic hooks (useDebounce)
 │   └── theme/      light/dark theme hook
 ├── features/   screens grouped by domain
 │   ├── auth/       LoginPage
-│   └── dashboard/  DashboardPage (branded shell)
-└── shared/ui/  reusable presentational components (TextField, ThemeToggle)
+│   ├── dashboard/  DashboardPage
+│   ├── inventory/  list, product form, and product query/mutation hooks
+│   └── settings/   theme, language, business, log out
+└── shared/ui/  AppLayout (the nav shell) + reusable components (Button, Select,
+                ConfirmDialog, RowLink, StockBadge, TextField, ThemeToggle)
 ```
 
 The `@` path alias resolves to `src/`. Styling is Tailwind CSS v4 with semantic
@@ -102,6 +106,11 @@ Access is role-aware and tenant-scoped. Every query is filtered by
 never sees another's products. Writes (`POST`/`PATCH`/`DELETE`) require the
 `admin` role; reads are open to `admin` and `employee`. The `loadUser` middleware
 attaches the user (id, businessId, role) after `requireAuth`.
+
+The list is paginated and filterable (search, stock status, category, supplier,
+sort with direction); a `GET /products/facets` endpoint returns the distinct
+categories and suppliers so the UI fills its filters independently of the current
+page.
 
 ## HTTP API reference
 

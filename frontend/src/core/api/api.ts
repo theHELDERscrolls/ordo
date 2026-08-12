@@ -17,5 +17,7 @@ export async function apiFetch<T>(
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(body.error ?? `Request failed (${res.status})`);
   }
+  // A 204 (e.g. DELETE) carries no body, so don't try to parse one.
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }

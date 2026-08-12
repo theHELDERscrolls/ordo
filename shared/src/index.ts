@@ -104,6 +104,9 @@ export const createProductSchema = z.object({
   imageUrl: z.url().optional(),
 });
 export type CreateProductInput = z.infer<typeof createProductSchema>;
+// Input side of the schema (fields with a default are optional here). Forms need
+// this for react-hook-form's input generic; the resolver still outputs CreateProductInput.
+export type CreateProductFormInput = z.input<typeof createProductSchema>;
 
 // Update input: any subset of the creatable fields.
 export const updateProductSchema = createProductSchema.partial();
@@ -127,3 +130,11 @@ export const dashboardStatsSchema = z.object({
   inventoryValue: z.number().nonnegative(),
 });
 export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
+
+// Distinct values for the inventory filters, so the UI can populate its category
+// and supplier selects independently of pagination.
+export const productFacetsSchema = z.object({
+  categories: z.array(z.string()),
+  suppliers: z.array(z.string()),
+});
+export type ProductFacets = z.infer<typeof productFacetsSchema>;

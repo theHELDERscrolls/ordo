@@ -35,3 +35,16 @@ scoped to the caller's business: you only ever see or modify your own tenant's d
 | [auth.md](auth.md) | Login · Current session |
 | [products.md](products.md) | List (search/filter/sort) · Create · Read · Update · Delete |
 | [dashboard.md](dashboard.md) | Inventory stats snapshot |
+
+## OpenAPI
+
+[`openapi.yaml`](openapi.yaml) is the OpenAPI 3.1 contract — the standard, visual
+reference. Open it at [editor.swagger.io](https://editor.swagger.io) (drag the file
+in) or any Swagger UI to browse every endpoint, schema and example and try requests
+inline. It is maintained by hand, so keep it in sync when the API changes.
+
+## Postman
+
+Import [`ordo-postman-collection.json`](ordo-postman-collection.json) into Postman to
+try every endpoint. Run **Auth > Login** first — it stores the JWT in the `token`
+collection variable, which the other requests send as a Bearer token.
