@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /* Map our semantic tokens into Tailwind so utilities like bg-surface, text-fg,
@@ -12,6 +13,8 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
 }
 
 /* Neutral layers. These are Ordo's identity, shared by every tenant. */
@@ -43,6 +46,32 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Slim, theme-aware scrollbar for scrollable menus (dropdowns), so they don't show
+   the heavy native one. Uses the neutral tokens, so it follows the light/dark swap. */
+.scrollbar-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scrollbar-slim::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
 }
