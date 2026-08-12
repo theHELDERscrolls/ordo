@@ -7,4 +7,12 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
+  {
+    languageOptions: {
+      parserOptions: {
+        // Disambiguate the TSConfig root when the monorepo is linted from an IDE.
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
 );
