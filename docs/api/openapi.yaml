@@ -1,0 +1,305 @@
+openapi: 3.1.0
+info:
+  title: Ordo API
+  version: 0.1.0
+  description: >-
+    REST API for Ordo, a configurable inventory platform for small businesses.
+    All endpoints except POST /auth/login and GET /health require a Bearer token
+    issued by login. Inventory endpoints are scoped to the caller's business.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Health
+  - name: Auth
+  - name: Products
+  - name: Dashboard
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      security: []
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate and open a session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: admin@tallerrodri.com }
+                password: { type: string, example: ordo1234! }
+      responses:
+        '200':
+          description: Token plus the resolved tenant context
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  user: { $ref: '#/components/schemas/User' }
+                  business: { $ref: '#/components/schemas/Business' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user and business
+      responses:
+        '200':
+          description: The authenticated user and their business
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+                  business: { $ref: '#/components/schemas/Business' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      parameters:
+        - { name: search, in: query, schema: { type: string }, description: Matches name or SKU }
+        - { name: stockStatus, in: query, schema: { type: string, enum: [in, low, out] } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: supplier, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [name, stock, salePrice, createdAt], default: name } }
+        - { name: order, in: query, schema: { type: string, enum: [asc, desc], default: asc } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: A page of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Product' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  limit: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Products]
+      summary: Create a product (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductInput' }
+      responses:
+        '201':
+          description: The created product
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: A product with this SKU already exists in the business
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /products/facets:
+    get:
+      tags: [Products]
+      summary: Distinct categories and suppliers for the filters
+      responses:
+        '200':
+          description: Facet values for the caller's business
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductFacets' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /products/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Products]
+      summary: Get a product by id
+      responses:
+        '200':
+          description: The product
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Products]
+      summary: Update a product (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ProductInput'
+              description: Any subset of the creatable fields
+      responses:
+        '200':
+          description: The updated product
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Products]
+      summary: Delete a product (admin only)
+      responses:
+        '204': { description: Deleted (no content) }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Inventory snapshot for the dashboard
+      responses:
+        '200':
+          description: The inventory stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productCount: { type: integer }
+                  lowStockCount: { type: integer }
+                  outOfStockCount: { type: integer }
+                  inventoryValue: { type: number }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Invalid request body
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Authenticated but not allowed (admin role required)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Not found, or not in the caller's business
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Branding:
+      type: object
+      properties:
+        accentColor: { type: string, example: '#d62828' }
+        logoUrl: { type: string, format: uri }
+        faviconUrl: { type: string, format: uri }
+    Business:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        branding: { $ref: '#/components/schemas/Branding' }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        role: { type: string, enum: [admin, employee] }
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        name: { type: string }
+        sku: { type: string }
+        description: { type: string }
+        category: { type: string }
+        supplier: { type: string }
+        unit: { type: string }
+        stock: { type: number }
+        minStock: { type: number }
+        costPrice: { type: number }
+        salePrice: { type: number }
+        imageUrl: { type: string, format: uri }
+        stockStatus: { type: string, enum: [in, low, out] }
+    ProductInput:
+      type: object
+      required: [name, sku, unit]
+      properties:
+        name: { type: string }
+        sku: { type: string }
+        unit: { type: string }
+        description: { type: string }
+        category: { type: string }
+        supplier: { type: string }
+        stock: { type: number, default: 0 }
+        minStock: { type: number, default: 0 }
+        costPrice: { type: number, default: 0 }
+        salePrice: { type: number, default: 0 }
+        imageUrl: { type: string, format: uri }
+    ProductFacets:
+      type: object
+      properties:
+        categories:
+          type: array
+          items: { type: string }
+        suppliers:
+          type: array
+          items: { type: string }
+
+security:
+  - bearerAuth: []

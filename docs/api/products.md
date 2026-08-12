@@ -38,6 +38,20 @@ Response `200`:
 }
 ```
 
+## GET `/products/facets`
+
+The distinct categories and suppliers across the business, so the UI can fill its
+filter dropdowns independently of the paginated list.
+
+Response `200`:
+
+```json
+{
+  "categories": ["Aceites y lubricantes", "Baterías", "Filtros", "Frenos", "Neumáticos"],
+  "suppliers": ["Bosch", "Brembo", "Castrol", "Michelin", "NGK"]
+}
+```
+
 ## POST `/products`
 
 Create a product (role `admin`). `businessId` comes from the session, not the body.
