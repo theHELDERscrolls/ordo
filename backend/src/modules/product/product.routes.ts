@@ -85,6 +85,20 @@ productRouter.get('/', async (req: Request, res: Response) => {
   res.json({ items: items.map((p) => p.toJSON()), total, page, limit });
 });
 
+// GET /products/facets — the distinct categories and suppliers in the business, so
+// the UI fills its filter dropdowns independently of the paginated list. Declared
+// before `/:id` so "facets" is not treated as an id.
+productRouter.get('/facets', async (req: Request, res: Response) => {
+  const scope: Query = { businessId: { $in: getAccessibleBusinessIds(req.user!) } };
+  const [categories, suppliers] = await Promise.all([
+    Product.distinct('category', scope),
+    Product.distinct('supplier', scope),
+  ]);
+  const clean = (values: unknown[]): string[] =>
+    (values.filter((v) => typeof v === 'string' && v.length > 0) as string[]).sort();
+  res.json({ categories: clean(categories), suppliers: clean(suppliers) });
+});
+
 // POST /products — create (admin only). businessId comes from the session, never
 // the body, so a client cannot plant a product in another tenant.
 productRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
@@ -126,7 +140,11 @@ productRouter.patch('/:id', requireAdmin, async (req: Request, res: Response) =>
   const filter = scopedFilter(req);
   try {
     const product =
-      filter && (await Product.findOneAndUpdate(filter, parsed.data, { new: true, runValidators: true }));
+      filter &&
+      (await Product.findOneAndUpdate(filter, parsed.data, {
+        returnDocument: 'after',
+        runValidators: true,
+      }));
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
