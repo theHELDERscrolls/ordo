@@ -5,15 +5,14 @@ import {
   type CreateProductInput,
   type Product,
 } from '@ordo/shared';
-import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { useProduct, useSaveProduct, useDeleteProduct } from './useProductMutations';
+import { useProduct, useSaveProduct } from './useProductMutations';
 import { useAuth } from '@/core/auth/use-auth';
 import { Button } from '@/shared/ui/Button';
-import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { TextField } from '@/shared/ui/TextField';
 import { buttonClasses } from '@/shared/ui/button-styles';
 
@@ -53,11 +52,9 @@ export function ProductFormPage() {
 
   const auth = useAuth();
   const isAdmin = auth.status === 'authenticated' && auth.user.role === 'admin';
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: product } = useProduct(id);
   const save = useSaveProduct(id);
-  const remove = useDeleteProduct();
 
   const {
     register,
@@ -69,8 +66,15 @@ export function ProductFormPage() {
     defaultValues: emptyProduct,
   });
 
+  // Once per product, not once per response: the query serves the cached list entry
+  // first and then refetches, and a second reset would wipe whatever has been typed
+  // in the meantime.
+  const filledFor = useRef<string>(null);
   useEffect(() => {
-    if (product) reset(toFormValues(product));
+    if (product && filledFor.current !== product.id) {
+      filledFor.current = product.id;
+      reset(toFormValues(product));
+    }
   }, [product, reset]);
 
   // Writes are admin-only. The backend enforces this too, with a 403.
@@ -88,12 +92,12 @@ export function ProductFormPage() {
       category: data.category || undefined,
       supplier: data.supplier || undefined,
     };
-    save.mutate(payload, { onSuccess: () => navigate('/inventory') });
-  }
-
-  function onDelete() {
-    if (!id) return;
-    remove.mutate(id, { onSuccess: () => navigate('/inventory') });
+    // Back to the product's own sheet rather than the bare list, so the change is
+    // visible where it was made. A create lands on the product it just made.
+    save.mutate(payload, {
+      onSuccess: (product) =>
+        navigate(`/inventory?product=${product.id}`, { replace: true }),
+    });
   }
 
   return (
@@ -105,27 +109,24 @@ export function ProductFormPage() {
         <ArrowLeft size={16} strokeWidth={1.75} />
         Volver al inventario
       </Link>
-      <div className="mt-3 flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {isEdit ? 'Editar producto' : 'Nuevo producto'}
-        </h1>
-        {isEdit && (
-          <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            aria-label="Eliminar producto"
-            title="Eliminar producto"
-            className="inline-flex shrink-0 items-center justify-center rounded-md border border-border p-2 text-fg-muted transition-colors hover:border-red-500 hover:text-red-600"
-          >
-            <Trash2 size={18} strokeWidth={1.75} />
-          </button>
-        )}
-      </div>
+      <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+        {isEdit ? 'Editar producto' : 'Nuevo producto'}
+      </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-1">
         <div className="grid gap-x-5 sm:grid-cols-2">
-          <TextField label="Nombre" id="name" {...register('name')} error={errors.name?.message} />
-          <TextField label="SKU" id="sku" {...register('sku')} error={errors.sku?.message} />
+          <TextField
+            label="Nombre"
+            id="name"
+            {...register('name')}
+            error={errors.name?.message}
+          />
+          <TextField
+            label="SKU"
+            id="sku"
+            {...register('sku')}
+            error={errors.sku?.message}
+          />
           <TextField
             label="Categoría"
             id="category"
@@ -138,7 +139,12 @@ export function ProductFormPage() {
             {...register('supplier')}
             error={errors.supplier?.message}
           />
-          <TextField label="Unidad" id="unit" {...register('unit')} error={errors.unit?.message} />
+          <TextField
+            label="Unidad"
+            id="unit"
+            {...register('unit')}
+            error={errors.unit?.message}
+          />
           <TextField
             label="Stock"
             id="stock"
@@ -180,7 +186,9 @@ export function ProductFormPage() {
         />
 
         {save.isError && (
-          <p className="text-sm text-red-600 dark:text-red-400">{(save.error as Error).message}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {(save.error as Error).message}
+          </p>
         )}
 
         <div className="flex items-center gap-2 pt-4">
@@ -192,19 +200,6 @@ export function ProductFormPage() {
           </Link>
         </div>
       </form>
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title="Eliminar producto"
-        message="Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
-        destructive
-        onConfirm={() => {
-          setConfirmOpen(false);
-          onDelete();
-        }}
-        onCancel={() => setConfirmOpen(false)}
-      />
     </div>
   );
 }
