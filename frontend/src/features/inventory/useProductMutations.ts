@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/core/api/api';
 import { useToken } from '@/core/auth/use-token';
 
-// Fetch one product for the edit form. Disabled when there is no id (create mode).
+/** One product, for the edit form. Idle in create mode, where there is no id. */
 export function useProduct(id: string | undefined) {
   const token = useToken();
   return useQuery({
@@ -14,9 +14,11 @@ export function useProduct(id: string | undefined) {
   });
 }
 
-// Create (POST) or update (PATCH) depending on whether an id is present. Invalidates
-// the list, the edited product, and the facets (a new category/supplier must show up
-// in the filters right away).
+/**
+ * Creates or updates depending on whether an id is present, then invalidates
+ * everything the write can have changed: the list, the product, the facets (a new
+ * category has to appear in the filters at once) and the panel's figures.
+ */
 export function useSaveProduct(id: string | undefined) {
   const token = useToken();
   const qc = useQueryClient();
@@ -31,10 +33,13 @@ export function useSaveProduct(id: string | undefined) {
       void qc.invalidateQueries({ queryKey: ['products'] });
       void qc.invalidateQueries({ queryKey: ['product', id] });
       void qc.invalidateQueries({ queryKey: ['product-facets'] });
+      void qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      void qc.invalidateQueries({ queryKey: ['inventory-breakdown'] });
     },
   });
 }
 
+/** Removes a product, invalidating the same views as a save. */
 export function useDeleteProduct() {
   const token = useToken();
   const qc = useQueryClient();
@@ -43,6 +48,8 @@ export function useDeleteProduct() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['products'] });
       void qc.invalidateQueries({ queryKey: ['product-facets'] });
+      void qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      void qc.invalidateQueries({ queryKey: ['inventory-breakdown'] });
     },
   });
 }

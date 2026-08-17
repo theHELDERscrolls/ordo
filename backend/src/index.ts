@@ -19,7 +19,7 @@ app.use('/auth', authRouter);
 app.use('/products', productRouter);
 app.use('/dashboard', dashboardRouter);
 
-// Connect to MongoDB before accepting traffic; fail loudly if the DB is unreachable.
+/** Refuses to accept traffic until MongoDB is reachable. */
 async function start(): Promise<void> {
   await connectDb();
   app.listen(env.port, () => {

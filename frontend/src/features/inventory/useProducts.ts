@@ -15,10 +15,11 @@ export type ProductFilters = {
   limit?: number;
 };
 
-// Lists products for the current tenant. The filters go straight into the query
-// string the API already understands; React Query caches per filter combination.
-// keepPreviousData keeps the current page visible while the next one loads, so
-// paging doesn't flash an empty/loading state.
+/**
+ * The tenant's products. Filters go straight into the query string the API already
+ * understands, and React Query caches per combination. The previous page stays on
+ * screen while the next loads, so paging never flashes an empty state.
+ */
 export function useProducts(filters: ProductFilters) {
   const token = useToken();
 

@@ -3,8 +3,12 @@ import { useEffect, useState } from 'react';
 const THEME_KEY = 'ordo_theme';
 type Theme = 'light' | 'dark';
 
-// Invertible theme: remembers the choice, falling back to the OS preference.
-// Toggling flips the `.dark` class on <html>, which swaps every neutral token.
+/**
+ * The invertible theme: remembers the choice and falls back to the OS preference.
+ * Toggling flips the `dark` class on `<html>`, which swaps every neutral token.
+ *
+ * @returns The active theme and a function that inverts it.
+ */
 export function useTheme(): [Theme, () => void] {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem(THEME_KEY);

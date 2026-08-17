@@ -5,8 +5,11 @@ import { User } from './modules/user/user.model.js';
 import { Product } from './modules/product/product.model.js';
 import { hashPassword } from './modules/auth/password.js';
 
-// Dev-only bootstrap: provisions one Business and its owner so login works end to
-// end. Wipes first so it stays reproducible (safe: development database only).
+/**
+ * Development-only bootstrap: one Business with an admin and an employee, plus a
+ * catalogue with enough volume and variety to exercise pagination, filters and the
+ * dashboard charts. Wipes first so repeated runs stay reproducible.
+ */
 async function seed(): Promise<void> {
   await connectDb();
   await User.deleteMany({});
@@ -29,7 +32,6 @@ async function seed(): Promise<void> {
     role: 'admin',
   });
 
-  // A wider, varied catalog so pagination and filters have real volume to work with.
   // Columns: name, category, supplier, salePrice, stock, minStock. SKU and costPrice
   // are derived below.
   const bId = business._id;
@@ -95,7 +97,6 @@ async function seed(): Promise<void> {
     })),
   );
 
-  // A second user with the employee role, to exercise the read-only UI.
   await User.create({
     businessId: business._id,
     email: 'empleado@tallerrodri.com',

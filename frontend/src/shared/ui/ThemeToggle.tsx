@@ -1,6 +1,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/core/theme/use-theme';
 
+/** Inverts the theme. Lives in Settings and on the login screen. */
 export function ThemeToggle() {
   const [theme, toggle] = useTheme();
   return (

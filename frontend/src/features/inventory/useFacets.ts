@@ -4,8 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/core/api/api';
 import { useToken } from '@/core/auth/use-token';
 
-// The distinct categories and suppliers in the business, to fill the filter
-// dropdowns independently of the paginated list.
+/** The distinct categories and suppliers, to fill the filters independently of the page. */
 export function useFacets() {
   const token = useToken();
   return useQuery({

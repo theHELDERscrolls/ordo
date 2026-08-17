@@ -4,25 +4,24 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '@/core/auth/use-auth';
 
-// Primary sections (prominent, top) and the utility entry (quiet, bottom), per the
-// convention that rarely-used items like settings live at the bottom, set apart.
+// Primary sections sit at the top; the utility entry stays quiet at the bottom.
 const primaryNav = [
   { to: '/', label: 'Panel', icon: LayoutDashboard, end: true },
   { to: '/inventory', label: 'Inventario', icon: Package, end: false },
 ];
 const settingsNav = { to: '/settings', label: 'Ajustes', icon: Settings, end: false };
 
-// The authenticated app shell. The whole shell is exactly viewport-height and does
-// NOT grow with content: only <main> scrolls, so the sidebar (and its bottom
-// "Ajustes") stays put and visible no matter how long the inventory gets. Theme
-// toggle and log out live inside Settings, not in the nav.
+/**
+ * The authenticated shell. It is exactly viewport-height and never grows with its
+ * content: only `<main>` scrolls, so the sidebar and the bottom bar stay put however
+ * long the inventory gets.
+ */
 export function AppLayout() {
   const auth = useAuth();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  // Scroll the content back to the top on every route change, so opening a product
-  // detail/edit (or any page) starts at the top instead of keeping the list's scroll.
+  // Every page starts at the top, instead of inheriting the list's scroll position.
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0);
   }, [location.pathname]);

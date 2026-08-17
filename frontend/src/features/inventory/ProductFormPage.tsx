@@ -45,6 +45,7 @@ function toFormValues(p: Product): CreateProductInput {
   };
 }
 
+/** Creates or edits a product, depending on whether the route carries an id. */
 export function ProductFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -72,8 +73,7 @@ export function ProductFormPage() {
     if (product) reset(toFormValues(product));
   }, [product, reset]);
 
-  // Writes are admin-only; an employee who reaches this URL is sent back to the list
-  // (the backend also enforces it with a 403).
+  // Writes are admin-only. The backend enforces this too, with a 403.
   useEffect(() => {
     if (!isAdmin) navigate('/inventory', { replace: true });
   }, [isAdmin, navigate]);
@@ -81,7 +81,7 @@ export function ProductFormPage() {
   if (!isAdmin) return null;
 
   function onSubmit(data: CreateProductInput) {
-    // Send optional text fields as undefined rather than empty strings.
+    // Optional text fields go as undefined rather than as empty strings.
     const payload = {
       ...data,
       description: data.description || undefined,

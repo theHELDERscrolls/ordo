@@ -1,10 +1,11 @@
 import type { StockStatus } from '@ordo/shared';
 
-// A restrained stock indicator: a small dot plus a short label. "in" renders
-// nothing — the silent default, so only items needing attention draw the eye.
-// "out" uses the accent (the most urgent, actionable state); "low" uses amber, the
-// one deliberate exception to the monochrome palette, justified because telling low
-// from out at a glance is the whole job of the screen.
+/**
+ * A dot and a short label. `in` renders nothing, so only the items needing
+ * attention draw the eye. `out` takes the accent as the most actionable state;
+ * `low` takes amber, the one deliberate exception to the monochrome palette,
+ * earned because telling the two apart at a glance is the screen's whole job.
+ */
 export function StockBadge({ status }: { status: StockStatus }) {
   if (status === 'in') return null;
   const isOut = status === 'out';

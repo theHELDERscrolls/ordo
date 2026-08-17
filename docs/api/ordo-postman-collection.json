@@ -139,6 +139,13 @@
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["dashboard", "stats"] }
           }
+        },
+        {
+          "name": "Inventory breakdown",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/inventory-breakdown", "host": ["{{baseUrl}}"], "path": ["dashboard", "inventory-breakdown"] }
+          }
         }
       ]
     }

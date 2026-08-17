@@ -13,10 +13,12 @@ type ConfirmDialogProps = {
   onCancel: () => void;
 };
 
-// A minimal, dependency-free confirmation modal. Closes on Escape or backdrop click,
-// locks background scroll while open, and focuses Cancel by default (the safe choice
-// for a destructive action). The destructive confirm uses a fixed red, not the
-// tenant accent, so "danger" reads the same for every business.
+/**
+ * A dependency-free confirmation modal. Closes on Escape or a backdrop click, locks
+ * background scroll while open, and focuses Cancel by default, which is the safe
+ * choice for a destructive action. A destructive confirm uses a fixed red rather
+ * than the tenant accent, so danger reads the same for every business.
+ */
 export function ConfirmDialog({
   open,
   title,

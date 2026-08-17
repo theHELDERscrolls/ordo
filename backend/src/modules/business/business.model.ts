@@ -1,8 +1,8 @@
 import { Schema, model } from 'mongoose';
 
-// Branding is embedded (a sub-document), not a separate collection: it belongs to
-// the Business, is always read with it, and is bounded in size. _id disabled
-// because a sub-object does not need its own identity.
+// Branding is embedded rather than its own collection: it belongs to the Business,
+// is always read with it, and is bounded in size. No _id, since a sub-object of a
+// single parent needs no identity of its own.
 const brandingSchema = new Schema(
   {
     logoUrl: { type: String },
@@ -21,7 +21,6 @@ const businessSchema = new Schema(
   { timestamps: true },
 );
 
-// Serialize to the public wire shape: expose `id`, drop `_id` and `__v`.
 businessSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
@@ -32,4 +31,5 @@ businessSchema.set('toJSON', {
   },
 });
 
+/** The tenant every other document is scoped to. */
 export const Business = model('Business', businessSchema);

@@ -1,12 +1,13 @@
-import type { StockStatus } from '@ordo/shared';
+import { stockStatusSchema, type StockStatus } from '@ordo/shared';
 import { Pencil, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { useFacets } from './useFacets';
 import { useProducts, type ProductFilters } from './useProducts';
 import { useAuth } from '@/core/auth/use-auth';
 import { useDebounce } from '@/core/hooks/use-debounce';
+import { money } from '@/shared/format';
 import { RowLink } from '@/shared/ui/RowLink';
 import { Select } from '@/shared/ui/Select';
 import { StockBadge } from '@/shared/ui/StockBadge';
@@ -29,15 +30,21 @@ const sortOptions = [
   { value: 'stock-desc', label: 'Stock (mayor a menor)' },
 ];
 
-const money = (n: number) =>
-  n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
-
+/** The catalogue: search, filters, sorting and pagination over the tenant's products. */
 export function InventoryPage() {
   const auth = useAuth();
   const isAdmin = auth.status === 'authenticated' && auth.user.role === 'admin';
 
+  // In the URL rather than in state, so the panel's cards can link straight to a
+  // filtered inventory. Parsing through the shared enum makes a hand-edited value
+  // fall back to "all" instead of reaching the API.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const parsedStatus = stockStatusSchema.safeParse(searchParams.get('stockStatus'));
+  const stockStatus = parsedStatus.success ? parsedStatus.data : undefined;
+  const setStockStatus = (value: StockStatus | undefined) =>
+    setSearchParams(value ? { stockStatus: value } : {}, { replace: true });
+
   const [search, setSearch] = useState('');
-  const [stockStatus, setStockStatus] = useState<StockStatus | undefined>(undefined);
   const [category, setCategory] = useState('');
   const [supplier, setSupplier] = useState('');
   const [sortValue, setSortValue] = useState('name-asc');
@@ -46,8 +53,8 @@ export function InventoryPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [sort, order] = sortValue.split('-') as [string, 'asc' | 'desc'];
 
-  // Reset to the first page whenever the effective filters change. Adjusting state
-  // during render (React's documented pattern) avoids an effect and its cascading render.
+  // Back to page one whenever the filters change. Adjusting state during render is
+  // React's documented pattern here, and avoids an effect and its extra render.
   const filterKey = `${debouncedSearch}|${stockStatus ?? ''}|${category}|${supplier}|${sortValue}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {

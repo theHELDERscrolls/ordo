@@ -6,11 +6,12 @@ import { authReducer } from './auth-reducer';
 
 const TOKEN_KEY = 'ordo_token';
 
+/** Owns the session: restores it on load, exposes login/logout, and paints the
+ * tenant's accent while authenticated. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, { status: 'loading' });
 
-  // On load, restore the session from a stored token by asking the backend who
-  // it belongs to. An invalid or expired token is discarded.
+  // An invalid or expired stored token is discarded rather than trusted.
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
@@ -27,8 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  // White-label: paint the UI with the tenant's accent while authenticated,
-  // reset to the monochrome default otherwise.
+  // White-label: the tenant's accent while authenticated, monochrome otherwise.
   useEffect(() => {
     const root = document.documentElement;
     if (state.status === 'authenticated') {

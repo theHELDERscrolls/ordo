@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Product } from './product.model.js';
 
-// stockStatus is the only branching logic in the model. Verify it without a DB by
-// instantiating an unsaved document and reading the virtual.
+// The only branching logic in the model, checked without a database by reading the
+// virtual off an unsaved document.
 describe('Product stockStatus virtual', () => {
   const status = (stock: number, minStock: number): string =>
     new Product({ name: 'x', sku: 'x', unit: 'unit', stock, minStock }).get('stockStatus');

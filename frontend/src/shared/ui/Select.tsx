@@ -11,9 +11,10 @@ type SelectProps = {
   className?: string;
 };
 
-// A custom dropdown, because the native <select> won't let us style its option
-// list or the arrow's spacing. Here we control the hover, the padding, and the
-// arrow that rotates when open. Closes on outside click or Escape.
+/**
+ * A dropdown built from scratch, because a native `<select>` allows no styling of
+ * its option list or its arrow. Closes on an outside click or Escape.
+ */
 export function Select({ value, onChange, options, ariaLabel, className = '' }: SelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

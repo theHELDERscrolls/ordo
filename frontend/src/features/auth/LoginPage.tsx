@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+/** The unauthenticated entry point. Redirects away once a session exists. */
 export function LoginPage() {
   const auth = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);

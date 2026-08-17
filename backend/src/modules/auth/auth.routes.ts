@@ -7,10 +7,13 @@ import { verifyPassword } from './password.js';
 import { signAccessToken } from './token.js';
 import { requireAuth } from './auth.middleware.js';
 
+/** Login and session introspection. */
 export const authRouter = express.Router();
 
-// POST /auth/login: validate input, verify credentials, and return a token plus
-// the resolved tenant context (user + business) so the frontend can theme itself.
+/**
+ * `POST /auth/login` — verifies credentials and returns a token plus the resolved
+ * tenant context, so the frontend can theme itself without a second request.
+ */
 authRouter.post('/login', async (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -20,8 +23,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   const { email, password } = parsed.data;
 
   const user = await User.findOne({ email: email.toLowerCase() });
-  // Same generic response whether the email is unknown or the password is wrong,
-  // so an attacker cannot probe which emails exist.
+  // One generic response for both an unknown email and a wrong password, so the
+  // endpoint cannot be used to probe which addresses exist.
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: 'Invalid email or password' });
     return;
@@ -37,7 +40,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   res.json({ token, user: user.toJSON(), business: business.toJSON() });
 });
 
-// GET /auth/me: sample protected route. Returns the current user and business.
+/** `GET /auth/me` — the current user and business behind the caller's token. */
 authRouter.get('/me', requireAuth, async (req: Request, res: Response) => {
   const user = await User.findById(req.userId);
   if (!user) {

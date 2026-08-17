@@ -4,9 +4,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '@/core/auth/use-auth';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
-// Rarely-used, account-level options gathered in one calm place: appearance,
-// language, business info, and log out at the bottom, set apart. Expected to grow
-// (editing the business image/branding, etc.).
+/** Account-level options gathered in one calm place, with log out set apart at the bottom. */
 export function SettingsPage() {
   const auth = useAuth();
   if (auth.status !== 'authenticated') return null;
