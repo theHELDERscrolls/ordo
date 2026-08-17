@@ -8,6 +8,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+
 - npm workspaces monorepo (`shared`, `backend`, `frontend`) with a single root lockfile.
 - `@ordo/shared` contract package (Zod) consumed by `backend` and `frontend`, wired with TypeScript project references so a contract change breaks compilation on both sides.
 - Backend foundation: Express, Mongoose, CORS, Zod; compiled build (`tsc` to `dist`, `node dist`), `tsx` dev runner, ESLint flat config, `.env.example`, and a `/health` endpoint.
@@ -23,8 +24,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Developer tooling: a `ship-pr` skill (`/ship-pr`) that automates the git-flow — logical commit split, CHANGELOG/version check, and a PR from the template.
 - Inventory & settings UI: the inventory screen (debounced search, faceted category/supplier filters, stock-status chips, sortable columns with direction, pagination), a product create/edit form with a custom confirmation dialog, a read-only view for `employee`, a Settings section (theme, language, business, log out), the navigation shell, and reusable UI (`Button`, `Select`, `ConfirmDialog`, `RowLink`, `StockBadge`). Space Grotesk display font via CSS.
 - Inventory facets endpoint (`GET /products/facets`) for filter values, plus a wider auto-parts seed with an `employee` user.
+- Dashboard panel: four stat cards (product count, inventory value, low stock, out of stock) reading `GET /dashboard/stats`, with the stock cards deep-linking into the inventory pre-filtered by that status. The inventory's stock filter now lives in the URL (`?stockStatus=low|out`) so it can be linked to.
+- Inventory value breakdown endpoint (`GET /dashboard/inventory-breakdown`): value and product count per category, plus the products ranked by value, all from a single `$facet` aggregation.
+- Two panel charts built on Recharts: capital by category (ranked horizontal bars, tail folded into "Otras") and capital concentration (running share of value across the ranked products, on one axis, with the 80% ABC reference line). Both are single-series and monochrome, coloured from the theme tokens so they follow the light/dark toggle. Recharts is isolated in a lazily loaded chunk so it stays out of the entry bundle.
+- Reusable `StatCard`: a container-query card whose figure scales with the card's own width, so the same component fits two columns on a phone and four on a tablet.
 
 ### Changed
 - Root README now reflects the real state: Cloudinary (not S3) for storage, current project status, and the actual monorepo layout. Replaced the default Vite boilerplate in `frontend/README.md` with a real one.
 - Aligned the versioning policy in `CLAUDE.md` (no version bump on `develop`; bump, seal and tag only at release).
 - ESLint configs set `tsconfigRootDir` to disambiguate the monorepo TSConfig root; `PATCH /products` uses `returnDocument: 'after'` (Mongoose 9 deprecation).
+- Documentation pass over the whole codebase: prose comments condensed and rewritten as TSDoc on the exported symbols (contracts, hooks, components, middleware, routes), leaving inline comments only where they explain a decision that has no exported symbol to hang from.
+- The dashboard's charting layer moved into `features/dashboard/charts/`, so the folder boundary matches the lazily loaded Recharts chunk boundary.
+- The reorder threshold now lives only in `product.status.ts`, as a predicate for loaded documents and a matching MongoDB expression for queries. The model's `stockStatus` virtual, the inventory's stock filter and the panel's low/out counts all read it instead of restating it, and a test evaluates the two encodings against each other so they cannot drift.

@@ -34,7 +34,7 @@ scoped to the caller's business: you only ever see or modify your own tenant's d
 |------|-----------|
 | [auth.md](auth.md) | Login · Current session |
 | [products.md](products.md) | List (search/filter/sort) · Create · Read · Update · Delete |
-| [dashboard.md](dashboard.md) | Inventory stats snapshot |
+| [dashboard.md](dashboard.md) | Inventory stats snapshot and value breakdown |
 
 ## OpenAPI
 

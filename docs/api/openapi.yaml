@@ -206,6 +206,42 @@ paths:
                   inventoryValue: { type: number }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /dashboard/inventory-breakdown:
+    get:
+      tags: [Dashboard]
+      summary: Where the inventory's capital sits, for the panel's charts
+      responses:
+        '200':
+          description: Value per category and the products ranked by value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalValue: { type: number }
+                  productCount: { type: integer }
+                  byCategory:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category:
+                          type: string
+                          description: Empty for products with no category
+                        value: { type: number }
+                        productCount: { type: integer }
+                  topProducts:
+                    type: array
+                    description: Highest value first, capped at 20, zero-value excluded
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        sku: { type: string }
+                        value: { type: number }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
 components:
   securitySchemes:
     bearerAuth:
