@@ -1,8 +1,7 @@
 import { Schema, model } from 'mongoose';
+import type { StockStatus } from '@ordo/shared';
+import { stockStatusOf } from './product.status.js';
 
-// A product belongs to a Business (the tenant scope). `sku` is unique WITHIN a
-// business (see the compound index below), which is the identity the future CSV
-// import relies on to update-or-create instead of duplicating.
 const productSchema = new Schema(
   {
     businessId: {
@@ -26,18 +25,16 @@ const productSchema = new Schema(
   { timestamps: true },
 );
 
-// SKU uniqueness is per business, not global: two shops can both have "A-100".
+// Per business, not global: two shops can both stock an "A-100". This is also the
+// identity the future CSV import will upsert on.
 productSchema.index({ businessId: 1, sku: 1 }, { unique: true });
 
-// Derived, never stored: the reorder signal the list badge and the dashboard use.
-productSchema.virtual('stockStatus').get(function (): 'in' | 'low' | 'out' {
-  if (this.stock === 0) return 'out';
-  if (this.stock <= this.minStock) return 'low';
-  return 'in';
+// Derived, never stored: the threshold itself lives in product.status.ts, so the
+// list badge, the filters and the dashboard counts cannot drift apart.
+productSchema.virtual('stockStatus').get(function (): StockStatus {
+  return stockStatusOf(this.stock, this.minStock);
 });
 
-// Serialize to the public wire shape: expose `id` and `stockStatus` (virtuals),
-// drop `_id` and `__v`.
 productSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
@@ -48,4 +45,5 @@ productSchema.set('toJSON', {
   },
 });
 
+/** A product in a Business's catalogue, identified within it by `sku`. */
 export const Product = model('Product', productSchema);
