@@ -56,10 +56,10 @@ frontend/src/
 ├── features/   screens grouped by domain
 │   ├── auth/       LoginPage
 │   ├── dashboard/  DashboardPage + its data hooks, charts/ for the Recharts layer
-│   ├── inventory/  list, product form, and product query/mutation hooks
+│   ├── inventory/  list, detail dialog, product form, and its data hooks
 │   └── settings/   theme, language, business, log out
 └── shared/ui/  AppLayout (the nav shell) + reusable components (Button, Select,
-                ConfirmDialog, RowLink, StockBadge, TextField, ThemeToggle)
+                Modal, ConfirmDialog, StockBadge, TextField, ThemeToggle)
 ```
 
 The `@` path alias resolves to `src/`. Styling is Tailwind CSS v4 with semantic
@@ -119,6 +119,21 @@ The list is paginated and filterable (search, stock status, category, supplier,
 sort with direction); a `GET /products/facets` endpoint returns the distinct
 categories and suppliers so the UI fills its filters independently of the current
 page.
+
+On the client, a row opens the product's read-only sheet rather than the edit form,
+and it does so for any role: an `employee` can inspect a product but sees no write
+actions, mirroring the API's split. Editing and deleting hang off that sheet, so
+both writes are a deliberate second step. The open product lives in the URL
+(`?product=<id>`) next to the stock filter, which makes a sheet linkable and lets
+the phone's back button close it. Editing stays a page rather than a second mode
+inside the sheet — ten fields in two columns need the room, and the image upload
+lands there next — but saving returns to the product's sheet instead of the bare
+list, so a change is seen where it was made.
+
+Modals are built on the native `<dialog>` (`shared/ui/Modal.tsx`). `showModal()`
+already gives the focus trap, Escape, the top layer and an inert, unscrollable
+background, so `Modal` only adds the shape — a sheet rising from the bottom edge on
+a phone, a centred panel from `sm` up — and `ConfirmDialog` composes on top of it.
 
 ## Dashboard panel
 
