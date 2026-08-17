@@ -1,8 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { userRoles } from '@ordo/shared';
 
-// A user always belongs to a Business (the tenant scope). passwordHash lives only
-// here, in the storage model, never in the shared wire contract.
 const userSchema = new Schema(
   {
     businessId: {
@@ -14,14 +12,13 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     name: { type: String, required: true },
-    // Roles reuse the shared list, so the DB and the contract can never disagree.
+    // Reusing the shared list keeps the database and the contract from disagreeing.
     role: { type: String, enum: [...userRoles], required: true },
   },
   { timestamps: true },
 );
 
-// Serialize to the public wire shape: expose `id`, and ALWAYS strip passwordHash
-// and internal fields so a hash can never leak even if a document is sent as-is.
+// Always strips passwordHash, so a hash cannot leak even if a document is sent as-is.
 userSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
@@ -33,4 +30,5 @@ userSchema.set('toJSON', {
   },
 });
 
+/** A user, always scoped to one Business. `passwordHash` lives only here. */
 export const User = model('User', userSchema);

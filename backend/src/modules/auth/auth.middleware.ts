@@ -3,8 +3,10 @@ import type { UserRole } from '@ordo/shared';
 import { verifyAccessToken } from './token.js';
 import { User } from '../user/user.model.js';
 
-// Guards protected routes: requires a valid Bearer access token, then attaches
-// the authenticated user id to the request for downstream handlers.
+/**
+ * Requires a valid Bearer access token and attaches the authenticated user id to
+ * the request for the handlers downstream.
+ */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.header('authorization');
   const token = header?.startsWith('Bearer ') ? header.slice(7) : undefined;
@@ -20,8 +22,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 }
 
-// Loads the authenticated user (run after requireAuth) and attaches the fields
-// routes need for tenant scoping and role checks, in a single DB lookup.
+/**
+ * Loads the authenticated user and attaches the fields routes need for tenant
+ * scoping and role checks, in a single lookup. Run after {@link requireAuth}.
+ */
 export async function loadUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   const user = await User.findById(req.userId);
   if (!user) {
@@ -36,7 +40,7 @@ export async function loadUser(req: Request, res: Response, next: NextFunction):
   next();
 }
 
-// Restricts a route to admins. Must run after loadUser.
+/** Restricts a route to admins. Run after {@link loadUser}. */
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (req.user?.role !== 'admin') {
     res.status(403).json({ error: 'Admin role required' });

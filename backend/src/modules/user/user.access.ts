@@ -1,9 +1,10 @@
 import type { UserRole } from '@ordo/shared';
 
-// The single place that answers "which businesses can this user touch?". Today a
-// user belongs to exactly one business, so it is just their own; a future
-// membership model (or a PlatformAdmin who sees all) changes only this function,
-// not every query that scopes by business.
+/**
+ * The single answer to "which businesses may this user touch?". A user belongs to
+ * exactly one business today, so a future membership model (or a platform admin
+ * who sees every tenant) changes this function alone, not every scoped query.
+ */
 export function getAccessibleBusinessIds(user: {
   businessId: string;
   role: UserRole;

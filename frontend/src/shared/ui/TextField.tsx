@@ -5,9 +5,10 @@ type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-// A labelled text input. On error the border turns red and the message shows in
-// red below. The message line always reserves its height, so revealing an error
-// never shifts the layout. forwardRef lets React Hook Form register the input.
+/**
+ * A labelled input. The message line always reserves its height, so revealing an
+ * error never shifts the layout. Forwards its ref for React Hook Form to register.
+ */
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ label, error, id, ...props }, ref) => (
     <div>

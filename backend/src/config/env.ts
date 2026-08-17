@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 
-// Load a local .env in development. Hosts like Render inject real environment
-// variables instead of a file, so we only load one when it exists.
+// Hosts like Render inject real environment variables, so a file is only loaded
+// when one exists locally.
 if (existsSync('.env')) process.loadEnvFile();
 
 function required(name: string): string {
@@ -10,8 +10,10 @@ function required(name: string): string {
   return value;
 }
 
-// Validated at import time: the process fails fast with a clear message if a
-// required variable is missing, instead of crashing later with a cryptic error.
+/**
+ * Validated at import time, so a missing variable fails the process immediately
+ * with a clear message instead of surfacing as a cryptic error later.
+ */
 export const env = {
   port: Number(process.env.PORT) || 3000,
   mongodbUri: required('MONGODB_URI'),

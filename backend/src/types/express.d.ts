@@ -1,7 +1,9 @@
 import type { UserRole } from '@ordo/shared';
 
-// Augment Express's Request so protected handlers can read the authenticated id
-// (set by requireAuth) and the loaded user context (set by loadUser).
+/**
+ * Lets protected handlers read the authenticated id (set by `requireAuth`) and the
+ * loaded user context (set by `loadUser`) off the request.
+ */
 declare global {
   namespace Express {
     interface Request {

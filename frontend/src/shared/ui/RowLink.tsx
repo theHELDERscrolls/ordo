@@ -10,9 +10,10 @@ type RowLinkProps = {
   children: ReactNode;
 };
 
-// Renders a Link when `active` (e.g. an admin who can open the detail), otherwise a
-// plain element — so list rows don't repeat the same isAdmin ternary in the table
-// and the cards.
+/**
+ * A `<Link>` when `active`, a plain element otherwise, so list rows do not repeat
+ * the same role check in both the table and the cards.
+ */
 export function RowLink({ to, active, as: Tag = 'span', className, title, children }: RowLinkProps) {
   if (active) {
     return (

@@ -1,7 +1,9 @@
 import type { User, Business } from '@ordo/shared';
 
-// The session is a small state machine: "loading" while we check for a stored
-// token, then either authenticated or unauthenticated.
+/**
+ * The session as a small state machine: `loading` while a stored token is being
+ * checked, then resolved either way.
+ */
 export type AuthState =
   | { status: 'loading' }
   | { status: 'authenticated'; token: string; user: User; business: Business }
