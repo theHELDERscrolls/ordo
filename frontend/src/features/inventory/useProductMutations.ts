@@ -1,16 +1,35 @@
-import type { CreateProductInput, Product, UpdateProductInput } from '@ordo/shared';
+import type {
+  CreateProductInput,
+  Product,
+  ProductListResponse,
+  UpdateProductInput,
+} from '@ordo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiFetch } from '@/core/api/api';
 import { useToken } from '@/core/auth/use-token';
 
-/** One product, for the edit form. Idle in create mode, where there is no id. */
+/**
+ * One product, for the detail sheet and the edit form. Idle in create mode, where
+ * there is no id.
+ *
+ * Seeded from whatever list page is already cached, so a product the list is already
+ * showing is available without waiting for a round trip. The request still runs, in
+ * the background, to pick up anything that changed.
+ */
 export function useProduct(id: string | undefined) {
   const token = useToken();
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ['product', id],
     queryFn: () => apiFetch<Product>(`/products/${id}`, {}, token),
     enabled: Boolean(id && token),
+    initialData: () =>
+      qc
+        .getQueriesData<ProductListResponse>({ queryKey: ['products'] })
+        .flatMap(([, data]) => data?.items ?? [])
+        .find((p) => p.id === id),
+    initialDataUpdatedAt: 0,
   });
 }
 
@@ -45,7 +64,10 @@ export function useDeleteProduct() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/products/${id}`, { method: 'DELETE' }, token),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      // Dropped rather than invalidated: the product is gone, and a stale copy would
+      // still fill the edit form for anyone reaching its URL from history.
+      qc.removeQueries({ queryKey: ['product', id] });
       void qc.invalidateQueries({ queryKey: ['products'] });
       void qc.invalidateQueries({ queryKey: ['product-facets'] });
       void qc.invalidateQueries({ queryKey: ['dashboard-stats'] });

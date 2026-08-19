@@ -1,14 +1,14 @@
 import { stockStatusSchema, type StockStatus } from '@ordo/shared';
-import { Pencil, Plus, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { ProductDetailDialog } from './ProductDetailDialog';
 import { useFacets } from './useFacets';
 import { useProducts, type ProductFilters } from './useProducts';
 import { useAuth } from '@/core/auth/use-auth';
 import { useDebounce } from '@/core/hooks/use-debounce';
 import { money } from '@/shared/format';
-import { RowLink } from '@/shared/ui/RowLink';
 import { Select } from '@/shared/ui/Select';
 import { StockBadge } from '@/shared/ui/StockBadge';
 import { buttonClasses } from '@/shared/ui/button-styles';
@@ -36,13 +36,46 @@ export function InventoryPage() {
   const isAdmin = auth.status === 'authenticated' && auth.user.role === 'admin';
 
   // In the URL rather than in state, so the panel's cards can link straight to a
-  // filtered inventory. Parsing through the shared enum makes a hand-edited value
-  // fall back to "all" instead of reaching the API.
+  // filtered inventory and a single product is shareable. Parsing through the shared
+  // enum makes a hand-edited value fall back to "all" instead of reaching the API.
   const [searchParams, setSearchParams] = useSearchParams();
-  const parsedStatus = stockStatusSchema.safeParse(searchParams.get('stockStatus'));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const parsedStatus = stockStatusSchema.safeParse(
+    searchParams.get('stockStatus'),
+  );
   const stockStatus = parsedStatus.success ? parsedStatus.data : undefined;
+  const openProductId = searchParams.get('product');
+
+  // Through the router's updater form, so each change reads the params as they are
+  // at that moment and one update cannot overwrite another made in the same tick.
+  const updateParams = (
+    mutate: (next: URLSearchParams) => void,
+    options?: { replace?: boolean; state?: unknown },
+  ) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      mutate(next);
+      return next;
+    }, options);
+
   const setStockStatus = (value: StockStatus | undefined) =>
-    setSearchParams(value ? { stockStatus: value } : {}, { replace: true });
+    updateParams(
+      (next) => (value ? next.set('stockStatus', value) : next.delete('stockStatus')),
+      { replace: true },
+    );
+
+  // Opening pushes a history entry, so the phone's back button closes the sheet, and
+  // marks it as ours. Closing walks that entry back when we own it, which keeps the
+  // stack clean; a sheet reached any other way — a shared link, a save returning to
+  // it — has nothing of ours behind it, so it rewrites the current entry instead.
+  const openProduct = (id: string) =>
+    updateParams((next) => next.set('product', id), { state: { sheet: true } });
+
+  const closeProduct = () => {
+    if ((location.state as { sheet?: boolean } | null)?.sheet) navigate(-1);
+    else updateParams((next) => next.delete('product'), { replace: true });
+  };
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -83,7 +116,8 @@ export function InventoryPage() {
   const categories = facets?.categories ?? [];
   const suppliers = facets?.suppliers ?? [];
   const hasFilters =
-    Boolean(debouncedSearch || category || supplier) || stockStatus !== undefined;
+    Boolean(debouncedSearch || category || supplier) ||
+    stockStatus !== undefined;
 
   function clearFilters() {
     setSearch('');
@@ -96,13 +130,18 @@ export function InventoryPage() {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Inventario</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            Inventario
+          </h1>
           <p className="mt-1 text-sm text-fg-muted transition-colors">
             Gestiona tu catálogo y los niveles de stock.
           </p>
         </div>
         {isAdmin && (
-          <Link to="/inventory/new" className={`shrink-0 ${buttonClasses('primary')}`}>
+          <Link
+            to="/inventory/new"
+            className={`shrink-0 ${buttonClasses('primary')}`}
+          >
             <Plus size={16} strokeWidth={2} />
             Nuevo producto
           </Link>
@@ -113,13 +152,13 @@ export function InventoryPage() {
         <div className="relative">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted"
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-muted"
           />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre o SKU"
-            className="w-full rounded-md border border-border bg-surface py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-fg"
+            className="w-full rounded-md border border-border bg-surface py-2 pr-3 pl-9 text-sm transition-colors outline-none focus:border-fg"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -131,7 +170,9 @@ export function InventoryPage() {
                 type="button"
                 onClick={() => setStockStatus(chip.value)}
                 className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                  active ? 'border-fg bg-fg text-bg' : 'border-border text-fg-muted hover:text-fg'
+                  active
+                    ? 'border-fg bg-fg text-bg'
+                    : 'border-border text-fg-muted hover:text-fg'
                 }`}
               >
                 {chip.label}
@@ -170,7 +211,9 @@ export function InventoryPage() {
 
       <div className="mt-6">
         {isLoading ? (
-          <p className="py-16 text-center text-sm text-fg-muted">Cargando productos…</p>
+          <p className="py-16 text-center text-sm text-fg-muted">
+            Cargando productos…
+          </p>
         ) : isError ? (
           <p className="py-16 text-center text-sm text-fg-muted">
             No se pudieron cargar los productos: {(error as Error).message}
@@ -178,7 +221,9 @@ export function InventoryPage() {
         ) : items.length === 0 ? (
           hasFilters ? (
             <div className="py-16 text-center">
-              <p className="text-sm font-medium">Ningún producto coincide con los filtros</p>
+              <p className="text-sm font-medium">
+                Ningún producto coincide con los filtros
+              </p>
               <button
                 type="button"
                 onClick={clearFilters}
@@ -195,7 +240,10 @@ export function InventoryPage() {
                   <p className="mt-1 text-sm text-fg-muted">
                     Añade tu primer producto para empezar a controlar el stock.
                   </p>
-                  <Link to="/inventory/new" className={`mt-4 ${buttonClasses('primary')}`}>
+                  <Link
+                    to="/inventory/new"
+                    className={`mt-4 ${buttonClasses('primary')}`}
+                  >
                     Nuevo producto
                   </Link>
                 </>
@@ -207,37 +255,48 @@ export function InventoryPage() {
             <div className="overflow-x-auto">
               <table className="hidden w-full md:table">
                 <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-fg-muted">
-                    <th className="py-2.5 pl-3 pr-4 font-medium">Producto</th>
+                  <tr className="border-b border-border text-left text-xs tracking-wide text-fg-muted uppercase">
+                    <th className="py-2.5 pr-4 pl-3 font-medium">Producto</th>
                     <th className="py-2.5 pr-4 font-medium">SKU</th>
                     <th className="py-2.5 pr-4 font-medium">Categoría</th>
                     <th className="py-2.5 pr-4 font-medium">Proveedor</th>
                     <th className="py-2.5 pr-4 font-medium">Estado</th>
-                    <th className="py-2.5 pl-4 text-right font-medium">Stock</th>
-                    <th className="py-2.5 pl-4 pr-3 text-right font-medium">Precio venta</th>
-                    {isAdmin && (
-                      <th className="py-2.5 pl-4 pr-3">
-                        <span className="sr-only">Acciones</span>
-                      </th>
-                    )}
+                    <th className="py-2.5 pl-4 text-right font-medium">
+                      Stock
+                    </th>
+                    <th className="py-2.5 pr-3 pl-4 text-right font-medium">
+                      Precio venta
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((p) => (
-                    <tr key={p.id} className="border-b border-border transition-colors hover:bg-surface">
-                      <td className="py-3 pl-3 pr-4">
-                        <RowLink
-                          to={`/inventory/${p.id}/edit`}
-                          active={isAdmin}
-                          className="block max-w-[13rem] truncate font-medium"
+                    <tr
+                      key={p.id}
+                      // Not while text is being selected: dragging across a cell to
+                      // copy a SKU ends in a click on the row, and would otherwise
+                      // throw away the selection and open the sheet.
+                      onClick={() => {
+                        if (window.getSelection()?.isCollapsed !== false) openProduct(p.id);
+                      }}
+                      className="cursor-pointer border-b border-border transition-colors hover:bg-surface"
+                    >
+                      <td className="py-3 pr-4 pl-3">
+                        {/* The button carries no handler of its own: pressing Enter on it
+                            fires a click that bubbles to the row, so the row keeps a single
+                            handler and stays reachable from the keyboard. */}
+                        <button
+                          type="button"
+                          aria-label={`Ver ${p.name}`}
                           title={p.name}
+                          className="block max-w-[13rem] truncate text-left font-medium"
                         >
                           {p.name}
-                        </RowLink>
+                        </button>
                       </td>
                       <td className="py-3 pr-4">
                         <span
-                          className="block max-w-[8rem] truncate text-sm tabular-nums text-fg-muted"
+                          className="block max-w-[8rem] truncate text-sm text-fg-muted tabular-nums"
                           title={p.sku}
                         >
                           {p.sku}
@@ -262,20 +321,12 @@ export function InventoryPage() {
                       <td className="py-3 pr-4">
                         <StockBadge status={p.stockStatus} />
                       </td>
-                      <td className="py-3 pl-4 text-right tabular-nums">{p.stock}</td>
-                      <td className="py-3 pl-4 pr-3 text-right tabular-nums">{money(p.salePrice)}</td>
-                      {isAdmin && (
-                        <td className="py-3 pl-4 pr-3 text-right">
-                          <Link
-                            to={`/inventory/${p.id}/edit`}
-                            aria-label="Editar producto"
-                            title="Editar producto"
-                            className="inline-flex rounded-md p-1.5 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-                          >
-                            <Pencil size={16} strokeWidth={1.75} />
-                          </Link>
-                        </td>
-                      )}
+                      <td className="py-3 pl-4 text-right tabular-nums">
+                        {p.stock}
+                      </td>
+                      <td className="py-3 pr-3 pl-4 text-right tabular-nums">
+                        {money(p.salePrice)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -284,34 +335,30 @@ export function InventoryPage() {
 
             <ul className="space-y-2 md:hidden">
               {items.map((p) => {
-                const inner = (
-                  <>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-medium">{p.name}</span>
-                      <span className="tabular-nums">{money(p.salePrice)}</span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between gap-3 text-sm text-fg-muted">
-                      <span className="tabular-nums">
-                        {p.sku}
-                        {p.category ? ` · ${p.category}` : ''}
-                      </span>
-                      <span className="inline-flex items-center gap-2 tabular-nums">
-                        <StockBadge status={p.stockStatus} />
-                        {p.stock}
-                      </span>
-                    </div>
-                  </>
-                );
+                // Spans rather than divs: the card is a button now, and a button only
+                // takes phrasing content.
                 return (
                   <li key={p.id}>
-                    <RowLink
-                      to={`/inventory/${p.id}/edit`}
-                      active={isAdmin}
-                      as="div"
-                      className="block rounded-lg border border-border bg-surface p-4 transition-colors"
+                    <button
+                      type="button"
+                      onClick={() => openProduct(p.id)}
+                      className="block w-full rounded-lg border border-border bg-surface p-4 text-left transition-colors hover:border-fg"
                     >
-                      {inner}
-                    </RowLink>
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="tabular-nums">{money(p.salePrice)}</span>
+                      </span>
+                      <span className="mt-1 flex items-center justify-between gap-3 text-sm text-fg-muted">
+                        <span className="tabular-nums">
+                          {p.sku}
+                          {p.category ? ` · ${p.category}` : ''}
+                        </span>
+                        <span className="inline-flex items-center gap-2 tabular-nums">
+                          <StockBadge status={p.stockStatus} />
+                          {p.stock}
+                        </span>
+                      </span>
+                    </button>
                   </li>
                 );
               })}
@@ -348,6 +395,8 @@ export function InventoryPage() {
           </div>
         </div>
       )}
+
+      <ProductDetailDialog productId={openProductId} onClose={closeProduct} />
     </div>
   );
 }
