@@ -43,8 +43,8 @@ A good report helps confirm and fix the issue quickly. Where possible, include:
 
 - The type of issue (e.g. authentication bypass, IDOR, XSS, NoSQL injection,
   sensitive data exposure, insecure file upload).
-- The affected component — frontend (React), backend (Express API), database
-  (MongoDB), file storage (Amazon S3), or the Telegram bot.
+- The affected component — frontend (React), backend (Express API), or the
+  database (MongoDB).
 - The affected version, commit, or endpoint (e.g. `POST /api/products`).
 - Step-by-step instructions to reproduce the issue.
 - A proof-of-concept, request/response sample, or minimal payload if available.
@@ -76,8 +76,6 @@ polite follow-up in case the original message was missed.
 - The Express backend and its REST API (`backend/`).
 - The MongoDB data model and access control (ownership and role checks).
 - Authentication and session handling (JWT, password hashing).
-- File uploads to Amazon S3 (presigned URLs, IAM permissions, MIME validation).
-- The Telegram bot integration.
 
 **Out of scope:**
 

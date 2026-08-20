@@ -94,7 +94,7 @@ The Product domain is the app's core. A `Product` belongs to a business
 (`businessId`) and is identified within it by `sku` (compound unique index
 `businessId + sku`), which is the identity a future CSV import will upsert on. Key
 fields: `name`, `sku`, `category`, `supplier`, `unit`, `stock`, `minStock`
-(reorder point), `costPrice`, `salePrice`, `imageUrl`.
+(reorder point), `costPrice`, `salePrice`.
 
 `stockStatus` is derived, never stored: `out` when stock is 0, `low` when
 `0 < stock <= minStock`, otherwise `in`.
@@ -126,9 +126,8 @@ actions, mirroring the API's split. Editing and deleting hang off that sheet, so
 both writes are a deliberate second step. The open product lives in the URL
 (`?product=<id>`) next to the stock filter, which makes a sheet linkable and lets
 the phone's back button close it. Editing stays a page rather than a second mode
-inside the sheet — ten fields in two columns need the room, and the image upload
-lands there next — but saving returns to the product's sheet instead of the bare
-list, so a change is seen where it was made.
+inside the sheet — ten fields in two columns need the room — but saving returns to
+the product's sheet instead of the bare list, so a change is seen where it was made.
 
 Modals are built on the native `<dialog>` (`shared/ui/Modal.tsx`). `showModal()`
 already gives the focus trap, Escape, the top layer and an inert, unscrollable

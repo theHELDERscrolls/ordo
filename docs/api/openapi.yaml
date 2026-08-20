@@ -310,7 +310,6 @@ components:
         minStock: { type: number }
         costPrice: { type: number }
         salePrice: { type: number }
-        imageUrl: { type: string, format: uri }
         stockStatus: { type: string, enum: [in, low, out] }
     ProductInput:
       type: object
@@ -326,7 +325,6 @@ components:
         minStock: { type: number, default: 0 }
         costPrice: { type: number, default: 0 }
         salePrice: { type: number, default: 0 }
-        imageUrl: { type: string, format: uri }
     ProductFacets:
       type: object
       properties:

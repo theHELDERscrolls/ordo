@@ -84,14 +84,6 @@ export function ProductDetailDialog({ productId, onClose }: ProductDetailDialogP
             </button>
           </div>
 
-          {product.imageUrl && (
-            <img
-              src={product.imageUrl}
-              alt=""
-              className="mt-5 aspect-[4/3] w-full rounded-md border border-border object-cover"
-            />
-          )}
-
           <div className="mt-5 flex items-end justify-between gap-4 border-y border-border py-4">
             <p className="font-display text-3xl font-bold leading-none tabular-nums">
               {product.stock}

@@ -4,7 +4,7 @@ Configurable inventory & restocking platform for small businesses (Master's thes
 
 ## Stack
 - Monorepo: `backend/` (Node + Express + TypeScript, MongoDB + Mongoose), `frontend/` (React + TypeScript + Vite, Tailwind with custom components), `docs/`.
-- Files/storage: Cloudinary. Bot: Telegram. Deploy: Render (backend) + Vercel (frontend) + MongoDB Atlas.
+- Deploy: Render (backend) + Vercel (frontend) + MongoDB Atlas.
 
 ## Architecture
 - Both `frontend/` and `backend/` are organized by domain (DDD-inspired). Grow the structure only when needed — do not scaffold ahead.
