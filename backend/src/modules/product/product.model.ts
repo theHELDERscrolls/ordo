@@ -20,7 +20,6 @@ const productSchema = new Schema(
     minStock: { type: Number, required: true, default: 0, min: 0 },
     costPrice: { type: Number, required: true, default: 0, min: 0 },
     salePrice: { type: Number, required: true, default: 0, min: 0 },
-    imageUrl: { type: String },
   },
   { timestamps: true },
 );

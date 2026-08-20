@@ -27,8 +27,6 @@ next.
 | Styling        | Tailwind CSS (custom components)    |
 | Backend        | Node.js + Express + TypeScript      |
 | Database       | MongoDB + Mongoose                  |
-| Storage        | Cloudinary (images)                 |
-| Messaging      | Telegram bot                        |
 | Deployment     | Render (backend) · Vercel (frontend) · MongoDB Atlas |
 
 Several libraries are used deliberately: Zod (shared validation), React Query,

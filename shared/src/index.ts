@@ -101,7 +101,6 @@ export const productSchema = z.object({
   minStock: z.number().nonnegative(),
   costPrice: z.number().nonnegative(),
   salePrice: z.number().nonnegative(),
-  imageUrl: z.url().optional(),
   stockStatus: stockStatusSchema,
 });
 export type Product = z.infer<typeof productSchema>;
@@ -121,7 +120,6 @@ export const createProductSchema = z.object({
   minStock: z.number().nonnegative().default(0),
   costPrice: z.number().nonnegative().default(0),
   salePrice: z.number().nonnegative().default(0),
-  imageUrl: z.url().optional(),
 });
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 

@@ -71,7 +71,7 @@ Request body:
 ```
 
 `stock`, `minStock`, `costPrice` and `salePrice` default to `0`. `description`,
-`category`, `supplier` and `imageUrl` are optional.
+`category` and `supplier` are optional.
 
 Response `201`:
 

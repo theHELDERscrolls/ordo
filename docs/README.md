@@ -11,6 +11,9 @@ where it is. Files are not created empty ahead of need.
   authentication flow, and the inventory domain (data model, roles, stock status).
 - [API reference](./api/README.md) — every HTTP endpoint with request/response
   JSON examples.
+- [Specs](./specs/) — what is designed but not yet built. A spec is written before
+  the work starts, and once shipped the architecture and API docs carry the truth;
+  the spec stays as the record of why it was built that way.
 
 ## Where else things are documented
 

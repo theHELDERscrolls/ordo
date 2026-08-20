@@ -31,9 +31,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Product detail dialog: a row now opens the product's read-only sheet — stock as the headline figure, prices, reorder point, category, supplier and description — with Edit and Delete for `admin` only. The open product lives in the URL (`?product=<id>`), so a sheet is linkable and the phone's back button closes it.
 - `Modal`, the app's base modal, built on the native `<dialog>`: `showModal()` supplies the focus trap, Escape, the top layer and an inert, unscrollable background, so the component only adds the shape — a sheet rising from the bottom edge on a phone, a centred panel from `sm` up — and an entrance that slides in on `translate` alone. Closing is immediate.
 
+- Design specs live in `docs/specs/`, written before the work starts. The first one covers the stock movement ledger and the CSV import/export path.
+
 ### Changed
+- Product images are out of scope: `imageUrl` is gone from the contract, the model and the detail dialog, and the Cloudinary/S3 mentions with it. Storage was optional and the app has no use for it that justifies the surface. The Telegram bot is dropped for the same reason: the inventory's own filters already answer what it would have answered.
 - Tapping a product no longer jumps into the edit form: it opens the detail dialog, and it does so for `employee` too, which until now had no way to see a product's detail at all. Deleting moved out of the product form's header and into that dialog, leaving a single place to delete from, `ConfirmDialog` is rebuilt on `Modal`, and `RowLink` goes with its last caller. Saving the product form now returns to that product's sheet rather than to the bare list, so a change lands in view; a create ends on the product it just made.
-- Root README now reflects the real state: Cloudinary (not S3) for storage, current project status, and the actual monorepo layout. Replaced the default Vite boilerplate in `frontend/README.md` with a real one.
+- Root README now reflects the real state: current project status and the actual monorepo layout. Replaced the default Vite boilerplate in `frontend/README.md` with a real one.
 - Aligned the versioning policy in `CLAUDE.md` (no version bump on `develop`; bump, seal and tag only at release).
 - ESLint configs set `tsconfigRootDir` to disambiguate the monorepo TSConfig root; `PATCH /products` uses `returnDocument: 'after'` (Mongoose 9 deprecation).
 - Documentation pass over the whole codebase: prose comments condensed and rewritten as TSDoc on the exported symbols (contracts, hooks, components, middleware, routes), leaving inline comments only where they explain a decision that has no exported symbol to hang from.
