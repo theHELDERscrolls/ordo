@@ -31,6 +31,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Product detail dialog: a row now opens the product's read-only sheet — stock as the headline figure, prices, reorder point, category, supplier and description — with Edit and Delete for `admin` only. The open product lives in the URL (`?product=<id>`), so a sheet is linkable and the phone's back button closes it.
 - `Modal`, the app's base modal, built on the native `<dialog>`: `showModal()` supplies the focus trap, Escape, the top layer and an inert, unscrollable background, so the component only adds the shape — a sheet rising from the bottom edge on a phone, a centred panel from `sm` up — and an entrance that slides in on `translate` alone. Closing is immediate.
 
+- Design specs live in `docs/specs/`, written before the work starts. The first one covers the stock movement ledger and the CSV import/export path.
 
 ### Changed
 - Product images are out of scope: `imageUrl` is gone from the contract, the model and the detail dialog, and the Cloudinary/S3 mentions with it. Storage was optional and the app has no use for it that justifies the surface. The Telegram bot is dropped for the same reason: the inventory's own filters already answer what it would have answered.
