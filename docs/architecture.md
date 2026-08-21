@@ -33,9 +33,11 @@ backend/src/
 │   ├── business/   Business Mongoose model (embedded branding)
 │   ├── user/       User model (bcrypt, businessId) + getAccessibleBusinessIds
 │   ├── product/    Product model + inventory CRUD and list API
+│   ├── movement/   StockMovement model (the stock ledger)
 │   └── dashboard/  inventory stats snapshot + value breakdown endpoints
+├── lib/        dependency-free helpers shared across modules (CSV read/write)
 ├── types/      Express request augmentation (req.userId, req.user)
-├── seed.ts     dev-only bootstrap of one Business + admin user
+├── seed.ts     dev-only bootstrap, built from backend/seed/*.csv
 └── index.ts    app wiring; connects to Mongo before listening
 ```
 
@@ -92,7 +94,7 @@ one; multi-tenancy is extra credit, not a requirement.
 
 The Product domain is the app's core. A `Product` belongs to a business
 (`businessId`) and is identified within it by `sku` (compound unique index
-`businessId + sku`), which is the identity a future CSV import will upsert on. Key
+`businessId + sku`), which is the identity the CSV import upserts on. Key
 fields: `name`, `sku`, `category`, `supplier`, `unit`, `stock`, `minStock`
 (reorder point), `costPrice`, `salePrice`.
 
@@ -133,6 +135,64 @@ Modals are built on the native `<dialog>` (`shared/ui/Modal.tsx`). `showModal()`
 already gives the focus trap, Escape, the top layer and an inert, unscrollable
 background, so `Modal` only adds the shape — a sheet rising from the bottom edge on
 a phone, a centred panel from `sm` up — and `ConfirmDialog` composes on top of it.
+
+## Stock movements
+
+A `StockMovement` records one change to a product's stock: `businessId`,
+`productId`, `type` (`in`, `out` or `adjust`), a `quantity` that is always
+positive, the `resultingStock` it left behind, an optional `reason`, the `userId`
+who did it, and `createdAt`. The ledger is append-only, so a movement has a
+creation date and no update date, and a mistake is corrected with an opposing
+movement rather than an edit.
+
+`quantity` is unsigned because the sign lives in `type`; `resultingStock` is
+denormalised because without it the history cannot say what a movement left behind
+without replaying the whole ledger on every read. `Product.stock` stays a plain
+number on the product for the same reason in reverse: the list, the filters and the
+panel all query it directly, and an aggregation per product would pay for that on
+every screen. The ledger explains the number, it does not replace it.
+
+Two indexes, `{ businessId, createdAt: -1 }` and `{ productId, createdAt: -1 }`,
+cover the two ways it is read: the business's history newest first, and one
+product's own sheet.
+
+The design, including the rules that keep stock and ledger in agreement, is in
+[spec 001](./specs/001-stock-movements-and-csv.md). The API and the UI arrive in
+later phases; today the model exists and the seed writes to it.
+
+## CSV
+
+`backend/src/lib/csv.ts` reads and writes CSV in about forty lines and no
+dependency: `parseCsv` handles quoted fields, `""` as an escaped quote, commas and
+newlines inside quotes, `CRLF` or `LF`, the BOM Excel writes and blank lines;
+`toCsv` quotes only what would otherwise break a row apart. `csv.test.ts` covers
+each of those cases plus a `toCsv(parseCsv(x)) === x` round trip, because a parser
+that is subtly wrong on quoting corrupts data quietly.
+
+## Seed data
+
+`npm run seed -w @ordo/backend` builds the development database from four CSV files
+in `backend/seed/`, read with `node:fs`. They are related by natural keys rather
+than ids, so they stay editable in a spreadsheet:
+
+| File | Key columns |
+|---|---|
+| `businesses.csv` | `slug` |
+| `users.csv` | `businessSlug`, `email` |
+| `products.csv` | `businessSlug`, `sku` |
+| `movements.csv` | `businessSlug`, `sku`, `userEmail` |
+
+The seed wipes the four collections, resolves those keys to ObjectIds in memory,
+and then replays the ledger. The `stock` column in `products.csv` is the product's
+**opening** stock, recorded as an `in` with reason "Stock inicial"; movements are
+applied oldest first, each one updating the running stock and storing it as its
+`resultingStock`; and the final running value is what the product is saved with. An
+`out` larger than the stock available at that point is skipped with a warning
+rather than producing a negative stock.
+
+`movements.csv` dates each row with a relative `daysAgo` instead of an absolute
+date, so a database seeded today always looks recently active. Those explicit dates
+are why the movements are inserted with Mongoose's automatic timestamps turned off.
 
 ## Dashboard panel
 

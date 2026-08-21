@@ -32,6 +32,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `Modal`, the app's base modal, built on the native `<dialog>`: `showModal()` supplies the focus trap, Escape, the top layer and an inert, unscrollable background, so the component only adds the shape — a sheet rising from the bottom edge on a phone, a centred panel from `sm` up — and an entrance that slides in on `translate` alone. Closing is immediate.
 
 - Design specs live in `docs/specs/`, written before the work starts. The first one covers the stock movement ledger and the CSV import/export path.
+- Stock movement ledger: a `StockMovement` model (`in`/`out`/`adjust`, an unsigned quantity, the `resultingStock` it left behind, the reason, and who did it), indexed for the business history and for a product's own sheet. Append-only, so it has a creation date and no update date. The API and the UI come in the next phases.
+- CSV read/write in `backend/src/lib/csv.ts` with no dependency: quoted fields, `""` escapes, commas and newlines inside quotes, `CRLF`, the BOM Excel writes, and blank lines, plus tests for each of those and a round trip.
 
 ### Changed
 - Product images are out of scope: `imageUrl` is gone from the contract, the model and the detail dialog, and the Cloudinary/S3 mentions with it. Storage was optional and the app has no use for it that justifies the surface. The Telegram bot is dropped for the same reason: the inventory's own filters already answer what it would have answered.
@@ -42,3 +44,4 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Documentation pass over the whole codebase: prose comments condensed and rewritten as TSDoc on the exported symbols (contracts, hooks, components, middleware, routes), leaving inline comments only where they explain a decision that has no exported symbol to hang from.
 - The dashboard's charting layer moved into `features/dashboard/charts/`, so the folder boundary matches the lazily loaded Recharts chunk boundary.
 - The reorder threshold now lives only in `product.status.ts`, as a predicate for loaded documents and a matching MongoDB expression for queries. The model's `stockStatus` virtual, the inventory's stock filter and the panel's low/out counts all read it instead of restating it, and a test evaluates the two encodings against each other so they cannot drift.
+- The seed no longer holds the catalogue as TypeScript literals: it reads `backend/seed/*.csv` with `node:fs` and resolves the natural keys (`slug`, `email`, `sku`) to ObjectIds. The demo data grew with it, from 45 products to 132 plus 218 movements, and each product's stock is now the result of replaying its own ledger from an opening balance rather than a number typed into the file.
