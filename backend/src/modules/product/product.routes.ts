@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { createProductSchema, stockStatusSchema, updateProductSchema } from '@ordo/shared';
 import { Product } from './product.model.js';
 import { stockStatusExpr } from './product.status.js';
+import { StockMovement, recordMovement } from '../movement/movement.model.js';
 import { requireAuth, loadUser, requireAdmin } from '../auth/auth.middleware.js';
 import { getAccessibleBusinessIds } from '../user/user.access.js';
 
@@ -113,6 +114,11 @@ productRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
   }
   try {
     const product = await Product.create({ ...parsed.data, businessId: req.user!.businessId });
+    // A product that arrives with stock arrives with a history: the opening
+    // balance is a movement like any other, or the ledger would start with a gap.
+    if (product.stock > 0) {
+      await recordMovement(product, req.user!.id, 'in', product.stock, 'Stock inicial');
+    }
     res.status(201).json(product.toJSON());
   } catch (err) {
     if (isDuplicateKey(err)) {
@@ -143,6 +149,12 @@ productRouter.patch('/:id', requireAdmin, async (req: Request, res: Response) =>
   }
   const filter = scopedFilter(req);
   try {
+    // Only pay for the extra read when the patch can actually move the stock: the
+    // size of the correction is the difference, which needs the previous value.
+    const before =
+      filter && parsed.data.stock !== undefined
+        ? await Product.findOne(filter).select('stock').lean()
+        : null;
     const product =
       filter &&
       (await Product.findOneAndUpdate(filter, parsed.data, {
@@ -152,6 +164,10 @@ productRouter.patch('/:id', requireAdmin, async (req: Request, res: Response) =>
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
+    }
+    if (before && before.stock !== product.stock) {
+      const size = Math.abs(product.stock - before.stock);
+      await recordMovement(product, req.user!.id, 'adjust', size, 'Ajuste manual');
     }
     res.json(product.toJSON());
   } catch (err) {
@@ -171,5 +187,8 @@ productRouter.delete('/:id', requireAdmin, async (req: Request, res: Response) =
     res.status(404).json({ error: 'Product not found' });
     return;
   }
+  // The history goes with the product: a ledger of movements against something
+  // that no longer exists explains nothing and cannot be browsed.
+  await StockMovement.deleteMany({ productId: product._id });
   res.status(204).send();
 });
