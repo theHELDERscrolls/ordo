@@ -144,6 +144,49 @@ export const movementTypes = ['in', 'out', 'adjust'] as const;
 export const movementTypeSchema = z.enum(movementTypes);
 export type MovementType = z.infer<typeof movementTypeSchema>;
 
+/**
+ * One recorded change to a product's stock. The product's name and SKU and the
+ * author's name are resolved server-side and flattened in here, so the history
+ * table renders from a single request.
+ */
+export const movementSchema = z.object({
+  id: z.string(),
+  businessId: z.string(),
+  productId: z.string(),
+  productName: z.string(),
+  productSku: z.string(),
+  type: movementTypeSchema,
+  quantity: z.number().positive(),
+  resultingStock: z.number().nonnegative(),
+  reason: z.string().optional(),
+  userId: z.string(),
+  userName: z.string(),
+  createdAt: z.string(),
+});
+export type Movement = z.infer<typeof movementSchema>;
+
+/**
+ * Creation input. Only `in` and `out` are user-creatable: an `adjust` is written
+ * by the system when a correction arrives through another path, so it can never
+ * be forged as a plain entry.
+ */
+export const createMovementSchema = z.object({
+  productId: z.string().min(1),
+  type: z.enum(['in', 'out']),
+  quantity: z.number().positive(),
+  reason: z.string().max(120).optional(),
+});
+export type CreateMovementInput = z.infer<typeof createMovementSchema>;
+
+/** Paginated envelope returned by `GET /movements`. */
+export const movementListResponseSchema = z.object({
+  items: z.array(movementSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+});
+export type MovementListResponse = z.infer<typeof movementListResponseSchema>;
+
 /** Paginated envelope returned by `GET /products`. */
 export const productListResponseSchema = z.object({
   items: z.array(productSchema),
