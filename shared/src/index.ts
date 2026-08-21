@@ -105,21 +105,38 @@ export const productSchema = z.object({
 });
 export type Product = z.infer<typeof productSchema>;
 
+/** Quantities and prices share one rule: a number that is never negative. */
+const amount = z.number().nonnegative();
+
 /**
- * Creation input. The client never sets `id`, `businessId` (taken from the
- * session) or the derived `stockStatus`.
+ * The editable fields of a product, with no creation defaults on them. Update
+ * builds on this and creation adds the defaults, because a default that survives
+ * into a partial update would rewrite a field the caller never sent.
  */
-export const createProductSchema = z.object({
+const productFields = {
   name: z.string().min(1),
   sku: z.string().min(1),
   unit: z.string().min(1),
   description: z.string().optional(),
   category: z.string().optional(),
   supplier: z.string().optional(),
-  stock: z.number().nonnegative().default(0),
-  minStock: z.number().nonnegative().default(0),
-  costPrice: z.number().nonnegative().default(0),
-  salePrice: z.number().nonnegative().default(0),
+  stock: amount,
+  minStock: amount,
+  costPrice: amount,
+  salePrice: amount,
+};
+
+/**
+ * Creation input. The client never sets `id`, `businessId` (taken from the
+ * session) or the derived `stockStatus`. The numeric fields default to zero, so a
+ * product can be created with nothing but a name, a SKU and a unit.
+ */
+export const createProductSchema = z.object({
+  ...productFields,
+  stock: amount.default(0),
+  minStock: amount.default(0),
+  costPrice: amount.default(0),
+  salePrice: amount.default(0),
 });
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
@@ -130,8 +147,13 @@ export type CreateProductInput = z.infer<typeof createProductSchema>;
  */
 export type CreateProductFormInput = z.input<typeof createProductSchema>;
 
-/** Update input: any subset of the creatable fields. */
-export const updateProductSchema = createProductSchema.partial();
+/**
+ * Update input: any subset of the editable fields. Built from {@link productFields}
+ * rather than from `createProductSchema.partial()`, because Zod keeps a `.default()`
+ * through `.partial()`: a patch of one field would arrive carrying `stock: 0`,
+ * `minStock: 0` and `costPrice: 0` and silently wipe them.
+ */
+export const updateProductSchema = z.object(productFields).partial();
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 /**
