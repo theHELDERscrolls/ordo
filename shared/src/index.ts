@@ -134,6 +134,16 @@ export type CreateProductFormInput = z.input<typeof createProductSchema>;
 export const updateProductSchema = createProductSchema.partial();
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
+/**
+ * What a stock movement did to a product's stock. `in` and `out` are recorded by
+ * hand; `adjust` is written by the system when a stock correction arrives through
+ * another path (the product form, a CSV import), so the ledger explains every
+ * number the catalogue shows.
+ */
+export const movementTypes = ['in', 'out', 'adjust'] as const;
+export const movementTypeSchema = z.enum(movementTypes);
+export type MovementType = z.infer<typeof movementTypeSchema>;
+
 /** Paginated envelope returned by `GET /products`. */
 export const productListResponseSchema = z.object({
   items: z.array(productSchema),
