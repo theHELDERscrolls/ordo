@@ -105,21 +105,38 @@ export const productSchema = z.object({
 });
 export type Product = z.infer<typeof productSchema>;
 
+/** Quantities and prices share one rule: a number that is never negative. */
+const amount = z.number().nonnegative();
+
 /**
- * Creation input. The client never sets `id`, `businessId` (taken from the
- * session) or the derived `stockStatus`.
+ * The editable fields of a product, with no creation defaults on them. Update
+ * builds on this and creation adds the defaults, because a default that survives
+ * into a partial update would rewrite a field the caller never sent.
  */
-export const createProductSchema = z.object({
+const productFields = {
   name: z.string().min(1),
   sku: z.string().min(1),
   unit: z.string().min(1),
   description: z.string().optional(),
   category: z.string().optional(),
   supplier: z.string().optional(),
-  stock: z.number().nonnegative().default(0),
-  minStock: z.number().nonnegative().default(0),
-  costPrice: z.number().nonnegative().default(0),
-  salePrice: z.number().nonnegative().default(0),
+  stock: amount,
+  minStock: amount,
+  costPrice: amount,
+  salePrice: amount,
+};
+
+/**
+ * Creation input. The client never sets `id`, `businessId` (taken from the
+ * session) or the derived `stockStatus`. The numeric fields default to zero, so a
+ * product can be created with nothing but a name, a SKU and a unit.
+ */
+export const createProductSchema = z.object({
+  ...productFields,
+  stock: amount.default(0),
+  minStock: amount.default(0),
+  costPrice: amount.default(0),
+  salePrice: amount.default(0),
 });
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
@@ -130,8 +147,13 @@ export type CreateProductInput = z.infer<typeof createProductSchema>;
  */
 export type CreateProductFormInput = z.input<typeof createProductSchema>;
 
-/** Update input: any subset of the creatable fields. */
-export const updateProductSchema = createProductSchema.partial();
+/**
+ * Update input: any subset of the editable fields. Built from {@link productFields}
+ * rather than from `createProductSchema.partial()`, because Zod keeps a `.default()`
+ * through `.partial()`: a patch of one field would arrive carrying `stock: 0`,
+ * `minStock: 0` and `costPrice: 0` and silently wipe them.
+ */
+export const updateProductSchema = z.object(productFields).partial();
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 /**
@@ -143,6 +165,49 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export const movementTypes = ['in', 'out', 'adjust'] as const;
 export const movementTypeSchema = z.enum(movementTypes);
 export type MovementType = z.infer<typeof movementTypeSchema>;
+
+/**
+ * One recorded change to a product's stock. The product's name and SKU and the
+ * author's name are resolved server-side and flattened in here, so the history
+ * table renders from a single request.
+ */
+export const movementSchema = z.object({
+  id: z.string(),
+  businessId: z.string(),
+  productId: z.string(),
+  productName: z.string(),
+  productSku: z.string(),
+  type: movementTypeSchema,
+  quantity: z.number().positive(),
+  resultingStock: z.number().nonnegative(),
+  reason: z.string().optional(),
+  userId: z.string(),
+  userName: z.string(),
+  createdAt: z.string(),
+});
+export type Movement = z.infer<typeof movementSchema>;
+
+/**
+ * Creation input. Only `in` and `out` are user-creatable: an `adjust` is written
+ * by the system when a correction arrives through another path, so it can never
+ * be forged as a plain entry.
+ */
+export const createMovementSchema = z.object({
+  productId: z.string().min(1),
+  type: z.enum(['in', 'out']),
+  quantity: z.number().positive(),
+  reason: z.string().max(120).optional(),
+});
+export type CreateMovementInput = z.infer<typeof createMovementSchema>;
+
+/** Paginated envelope returned by `GET /movements`. */
+export const movementListResponseSchema = z.object({
+  items: z.array(movementSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+});
+export type MovementListResponse = z.infer<typeof movementListResponseSchema>;
 
 /** Paginated envelope returned by `GET /products`. */
 export const productListResponseSchema = z.object({

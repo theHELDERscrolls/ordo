@@ -131,6 +131,42 @@
       ]
     },
     {
+      "name": "Movements",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/movements?productId=&type=&from=&to=&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements"],
+              "query": [
+                { "key": "productId", "value": "", "description": "One product's own history" },
+                { "key": "type", "value": "", "description": "in | out | adjust" },
+                { "key": "from", "value": "", "description": "ISO date, inclusive" },
+                { "key": "to", "value": "", "description": "ISO date, inclusive; a bare date covers the whole day" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"type\": \"out\",\n  \"quantity\": 1,\n  \"reason\": \"Venta en mostrador\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          }
+        }
+      ]
+    },
+    {
       "name": "Dashboard",
       "item": [
         {

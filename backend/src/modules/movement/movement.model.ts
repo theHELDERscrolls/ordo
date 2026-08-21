@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import { movementTypes } from '@ordo/shared';
+import { Schema, model, type Types } from 'mongoose';
+import { movementTypes, type MovementType } from '@ordo/shared';
 
 const movementSchema = new Schema(
   {
@@ -44,3 +44,29 @@ movementSchema.set('toJSON', {
 
 /** One recorded change to a product's stock. Never edited, never deleted alone. */
 export const StockMovement = model('StockMovement', movementSchema);
+
+/**
+ * Appends a movement for a product whose new stock has already been written.
+ * `resultingStock` is read from that saved value rather than recomputed, so the
+ * ledger cannot end up claiming something the catalogue disagrees with.
+ *
+ * Every path that changes stock goes through here: the movements endpoint, the
+ * product form, and the CSV import.
+ */
+export function recordMovement(
+  product: { _id: Types.ObjectId; businessId: Types.ObjectId; stock: number },
+  userId: string,
+  type: MovementType,
+  quantity: number,
+  reason?: string,
+) {
+  return StockMovement.create({
+    businessId: product.businessId,
+    productId: product._id,
+    type,
+    quantity,
+    resultingStock: product.stock,
+    reason,
+    userId,
+  });
+}

@@ -4,6 +4,7 @@ import { env } from './config/env.js';
 import { connectDb } from './config/db.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { productRouter } from './modules/product/product.routes.js';
+import { movementRouter } from './modules/movement/movement.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 
 const app = express();
@@ -17,6 +18,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/auth', authRouter);
 app.use('/products', productRouter);
+app.use('/movements', movementRouter);
 app.use('/dashboard', dashboardRouter);
 
 /** Refuses to accept traffic until MongoDB is reachable. */
