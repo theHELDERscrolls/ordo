@@ -23,6 +23,8 @@ scoped to the caller's business: you only ever see or modify your own tenant's d
 | `403` | Authenticated but not allowed (e.g. a write attempted by a non-`admin`) |
 | `404` | Resource not found, or it belongs to another business |
 | `409` | Conflict — a product with that SKU already exists, or an exit exceeds the stock available |
+| `413` | Body too large — a CSV import over 1 MB |
+| `415` | Wrong media type — a CSV import not sent as `text/csv` |
 
 ## Health
 
@@ -33,7 +35,7 @@ scoped to the caller's business: you only ever see or modify your own tenant's d
 | File | Endpoints |
 |------|-----------|
 | [auth.md](auth.md) | Login · Current session |
-| [products.md](products.md) | List (search/filter/sort) · Create · Read · Update · Delete |
+| [products.md](products.md) | List (search/filter/sort) · CSV export/import · Create · Read · Update · Delete |
 | [movements.md](movements.md) | Stock ledger: history (filtered) · Record an entry or an exit |
 | [dashboard.md](dashboard.md) | Inventory stats snapshot and value breakdown |
 

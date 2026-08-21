@@ -94,6 +94,45 @@
           }
         },
         {
+          "name": "Export CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/export.csv?search=&stockStatus=&category=&supplier=&sort=name&order=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "export.csv"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "stockStatus", "value": "" },
+                { "key": "category", "value": "" },
+                { "key": "supplier", "value": "" },
+                { "key": "sort", "value": "name" },
+                { "key": "order", "value": "asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Import CSV (dry run)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "text/csv" }],
+            "body": {
+              "mode": "raw",
+              "raw": "sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description\nACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;25;10;22,8;38;\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/import?dryRun=true&quantityMode=set",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "import"],
+              "query": [
+                { "key": "dryRun", "value": "true" },
+                { "key": "quantityMode", "value": "set" }
+              ]
+            }
+          }
+        },
+        {
           "name": "Create",
           "request": {
             "method": "POST",
