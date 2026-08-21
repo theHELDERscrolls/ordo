@@ -25,10 +25,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Reads the root package.json's engines.node, so the version is declared
+      # once and Render, Vercel and CI cannot drift apart.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: package.json
           cache: npm
 
       # One install at the root covers all workspaces (single lockfile).
