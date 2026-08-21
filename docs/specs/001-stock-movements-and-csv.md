@@ -154,7 +154,8 @@ when an `out` exceeds the available stock.
 
 ### `GET /products/export.csv`
 
-Returns `text/csv; charset=utf-8` with `Content-Disposition: attachment; filename="ordo-inventario-<date>.csv"`.
+Returns `text/csv; charset=utf-8` with `Content-Disposition: attachment; filename="ordo-inventario-<date>.csv"`,
+in the convention described under CSV handling below.
 Honours the same query parameters as `GET /products` (search, stockStatus, category,
 supplier, sort, order) and ignores pagination: you export what you are looking at.
 The filter builder currently inlined in `GET /products` (`product.routes.ts:57-70`) is
@@ -170,7 +171,7 @@ Query: `dryRun=true|false` (default `true`), `quantityMode=set|add` (default `se
 - Identity is `(businessId, sku)` — the same pair the unique index already enforces.
   A known SKU updates, an unknown one creates.
 - `quantityMode=set` writes the `stock` column as the new stock; `add` adds it to the
-  current stock. Everything else is always overwritten by the file.
+  current stock. Everything else is overwritten by the file.
 - Rows are validated one by one against `createProductSchema`. An invalid row is
   reported with its line number and skipped; it never aborts the rest of the file.
 - `dryRun=true` runs the whole validation and reports what *would* happen without
@@ -178,16 +179,55 @@ Query: `dryRun=true|false` (default `true`), `quantityMode=set|add` (default `se
 - Returns `importResultSchema`. `400` if the CSV has no header or no recognisable
   `sku`/`name` columns, `413` if it exceeds the limit.
 
+Three decisions the implementation had to settle, which this spec did not:
+
+- **Only the columns the file fills are written.** A column that is missing from the
+  header, or empty in a row, leaves that field as it is rather than overwriting it
+  with a zero or an empty string. "Everything else is overwritten by the file" above
+  is about the columns the file actually carries: taken literally it would mean a
+  `sku,name` file wipes every price in the catalogue, which is the same bug the
+  partial update schema already had once. An update is therefore validated against
+  `updateProductSchema` and only a create against `createProductSchema`, which is
+  also what makes `name`, `sku` and `unit` required for a new product alone.
+- **Two rows for one SKU are refused; the second is reported as an error.** The
+  file's SKUs are read once, before the loop, so the second row would be computed
+  against a stock the first has already moved: in `add` mode it would write the same
+  sum twice and record a second movement for an increment that never happened,
+  leaving the ledger disagreeing with the catalogue. Two rows for one product are a
+  mistake in the file in any case.
+- **A body that is not `text/csv` is a `415`**, rather than falling through to the
+  `400` for a missing header. They are different mistakes and the second reads as if
+  the file were at fault.
+
 ## CSV handling (`backend/src/lib/csv.ts`)
 
 Two functions, no dependency:
 
 - `parseCsv(text: string): Record<string, string>[]` — RFC 4180 enough for real files
-  out of Excel: quoted fields, `""` as an escaped quote, commas and newlines inside
+  out of Excel: quoted fields, `""` as an escaped quote, delimiters and newlines inside
   quotes, `CRLF` or `LF`, a leading BOM, and trailing blank lines. The first row is the
   header; unknown columns are kept but ignored by callers; values are trimmed.
-- `toCsv(rows, columns): string` — quotes any value containing a comma, a quote or a
-  newline, and always emits the header.
+- `toCsv(rows, columns, format?): string` — quotes any value containing the delimiter,
+  a quote or a newline, and always emits the header.
+
+### The delimiter is not always a comma
+
+"CSV out of Excel" is not one format. Excel writes the list separator of the machine's
+locale, so the same spreadsheet arrives comma-separated in English and
+semicolon-separated in Spanish, where the comma is already busy holding the decimals
+(`22,8`). Assuming the comma would read a Spanish file as a single column and every
+price as `NaN` — for the shop this app is written for, the common case.
+
+So: `parseCsv` detects the delimiter from the header (whichever of `;` and `,` occurs
+more, the comma on a tie) and `readProductRow` reads `22,8` as `22.8`. A number
+carrying both marks (`1.234,56`) is ambiguous without a locale the file does not
+carry, so it is reported by line rather than guessed at.
+
+The export writes the Spanish convention — `;`, comma decimals, and the UTF-8 BOM
+without which Excel renders the accents as mojibake — so the file it produces opens
+in columns on a double click instead of through the import wizard. Since the import
+detects both conventions, it still round-trips, and a file from an English Excel is
+read just as well.
 
 `csv.test.ts` covers the cases that actually break parsers: a field with a comma, an
 escaped quote, a newline inside a quoted field, CRLF line endings, a BOM, and a

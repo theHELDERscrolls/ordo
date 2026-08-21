@@ -145,6 +145,81 @@ paths:
               schema: { $ref: '#/components/schemas/ProductFacets' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /products/export.csv:
+    get:
+      tags: [Products]
+      summary: Export the inventory as CSV
+      description: >-
+        Honours the same filters and sort as GET /products and ignores pagination:
+        you export what you are looking at. Written the way a Spanish Excel expects
+        it — `;`, comma decimals and a UTF-8 BOM — so it opens in columns on a double
+        click. The file re-imports as a no-op.
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: stockStatus, in: query, schema: { type: string, enum: [in, low, out] } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: supplier, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [name, stock, salePrice, createdAt], default: name } }
+        - { name: order, in: query, schema: { type: string, enum: [asc, desc], default: asc } }
+      responses:
+        '200':
+          description: The inventory as a CSV attachment
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              example: attachment; filename="ordo-inventario-2026-08-21.csv"
+          content:
+            text/csv:
+              schema: { type: string }
+              example: |
+                sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description
+                ACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;67;10;22,8;38;
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /products/import:
+    post:
+      tags: [Products]
+      summary: Bulk load the catalogue from a CSV (admin only)
+      description: >-
+        Upserts by (businessId, sku). Only the columns the file fills are written,
+        so a missing or empty cell leaves that field alone. The delimiter (`;` or
+        `,`) is detected from the header and a decimal may be written either way,
+        because Excel writes the convention of its locale. An invalid row is
+        reported with its line number and skipped, never aborting the file.
+      parameters:
+        - name: dryRun
+          in: query
+          schema: { type: boolean, default: true }
+          description: Validate and report without writing anything
+        - name: quantityMode
+          in: query
+          schema: { type: string, enum: [set, add], default: set }
+          description: Whether the stock column replaces the stock or is added to it
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema: { type: string }
+            example: |
+              sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description
+              ACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;25;10;22,8;38;
+      responses:
+        '200':
+          description: What the import did, or would do on a dry run
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '413':
+          description: The file is over the 1 MB limit
+        '415':
+          description: The body was not sent as text/csv
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
   /products/{id}:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -403,6 +478,22 @@ components:
         type: { type: string, enum: [in, out] }
         quantity: { type: number, exclusiveMinimum: 0 }
         reason: { type: string, maxLength: 120 }
+    ImportResult:
+      type: object
+      properties:
+        dryRun: { type: boolean }
+        total: { type: integer, description: Data rows read from the file }
+        created: { type: integer }
+        updated: { type: integer }
+        skipped: { type: integer, description: Rows reported in errors }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row: { type: integer, description: The line in the file, the header being line 1 }
+              sku: { type: string }
+              message: { type: string }
     ProductFacets:
       type: object
       properties:

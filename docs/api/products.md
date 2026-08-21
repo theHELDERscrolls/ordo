@@ -52,6 +52,29 @@ Response `200`:
 }
 ```
 
+## GET `/products/export.csv`
+
+The inventory as a spreadsheet. Honours the same query params as `GET /products`
+(`search`, `stockStatus`, `category`, `supplier`, `sort`, `order`) and ignores
+pagination: you export what you are looking at, not the page you are on.
+
+Response `200`, `Content-Type: text/csv; charset=utf-8`,
+`Content-Disposition: attachment; filename="ordo-inventario-2026-08-21.csv"`:
+
+```csv
+sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description
+ACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;67;10;22,8;38;"Sintético; para gasolina y diésel"
+FIL-001;Filtro de aire;Filtros;Bosch;unidad;3;5;5;9;
+```
+
+Written the way a Spanish Excel expects it — `;` between fields, `22,8` for the
+decimals, and a leading UTF-8 BOM — so the file opens in columns on a double click
+instead of through the import wizard. A value containing the delimiter, a quote or
+a newline is quoted; a quote inside it is doubled.
+
+The file re-imports as a no-op, so it doubles as the template for
+`POST /products/import`, which reads both conventions.
+
 ## POST `/products`
 
 Create a product (role `admin`). `businessId` comes from the session, not the body.
@@ -98,6 +121,72 @@ Errors: `400` invalid body · `403` not an admin · `409` SKU already exists:
 
 ```json
 { "error": "A product with this SKU already exists" }
+```
+
+## POST `/products/import`
+
+Bulk load the catalogue from a CSV (role `admin`). The body is the file itself,
+sent as `Content-Type: text/csv` (up to 1 MB, around 8000 rows).
+
+Query params:
+
+| Param | Values | Default | Meaning |
+|---|---|---|---|
+| `dryRun` | `true`\|`false` | `true` | `true` validates and reports without writing anything |
+| `quantityMode` | `set`\|`add` | `set` | What the `stock` column means |
+
+Rules:
+
+- The field delimiter is detected from the header, `;` or `,`, because Excel writes
+  the one its locale uses. A decimal may be written `22.8` or `22,8`; a number
+  carrying both marks (`1.234,56`) is ambiguous and is reported by line rather than
+  guessed at. A leading BOM is stripped.
+- Identity is `(businessId, sku)`, the pair the unique index enforces: a known SKU
+  updates, an unknown one creates.
+- Only the columns the file fills are written. A column that is missing or empty
+  leaves that field as it is, so a two-column `sku,name` file renames products
+  without flattening their prices. A create still needs `name`, `sku` and `unit`.
+- `quantityMode=set` writes the `stock` column as the new stock and records an
+  `adjust` of the size of the correction; `add` adds it to the current stock and
+  records an `in` of the increment. Either way the reason is "Importación CSV".
+- A row that fails validation is reported with its line number (the header is line
+  1) and skipped; it never aborts the rest of the file. Two rows for the same SKU
+  are a mistake in the file: the second is reported, not applied.
+- A dry run reports the same counts the real run then produces.
+
+Request body:
+
+```csv
+sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description
+ACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;25;10;22,8;38;
+ROT-001;Rótula de dirección;Dirección;SKF;unidad;7;2;12;25;
+BAD-001;Sin unidad;;;;5;1;1;2;
+```
+
+Response `200`:
+
+```json
+{
+  "dryRun": true,
+  "total": 3,
+  "created": 1,
+  "updated": 1,
+  "skipped": 1,
+  "errors": [
+    {
+      "row": 4,
+      "sku": "BAD-001",
+      "message": "unit: Invalid input: expected string, received undefined"
+    }
+  ]
+}
+```
+
+Errors: `400` no header, or no `sku` and `name` columns · `403` not an admin ·
+`415` the body was not sent as `text/csv` · `413` over 1 MB.
+
+```json
+{ "error": "The CSV needs a header with sku and name, and at least one row" }
 ```
 
 ## GET `/products/:id`

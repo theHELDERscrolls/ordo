@@ -209,6 +209,40 @@ export const movementListResponseSchema = z.object({
 });
 export type MovementListResponse = z.infer<typeof movementListResponseSchema>;
 
+/**
+ * What the `stock` column of an imported CSV means: `set` writes it as the new
+ * stock, `add` adds it to what the product already has. Everything else in the
+ * file always overwrites.
+ */
+export const importModes = ['set', 'add'] as const;
+export const importModeSchema = z.enum(importModes);
+export type ImportMode = z.infer<typeof importModeSchema>;
+
+/**
+ * One row the import could not apply. `row` is the line in the file, counting the
+ * header as line 1, so the user can find it in the spreadsheet.
+ */
+export const importErrorSchema = z.object({
+  row: z.number().int().positive(),
+  sku: z.string().optional(),
+  message: z.string(),
+});
+export type ImportError = z.infer<typeof importErrorSchema>;
+
+/**
+ * The outcome of a CSV import. A dry run reports exactly what the real run would
+ * then do, which is what the UI shows before asking for confirmation.
+ */
+export const importResultSchema = z.object({
+  dryRun: z.boolean(),
+  total: z.number().int().nonnegative(),
+  created: z.number().int().nonnegative(),
+  updated: z.number().int().nonnegative(),
+  skipped: z.number().int().nonnegative(),
+  errors: z.array(importErrorSchema),
+});
+export type ImportResult = z.infer<typeof importResultSchema>;
+
 /** Paginated envelope returned by `GET /products`. */
 export const productListResponseSchema = z.object({
   items: z.array(productSchema),

@@ -1,9 +1,17 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { createProductSchema, stockStatusSchema, updateProductSchema } from '@ordo/shared';
+import {
+  createProductSchema,
+  importModeSchema,
+  stockStatusSchema,
+  updateProductSchema,
+  type ImportResult,
+} from '@ordo/shared';
 import { Product } from './product.model.js';
 import { stockStatusExpr } from './product.status.js';
+import { PRODUCT_CSV_COLUMNS, readProductRow } from './product.csv.js';
+import { parseCsv, spanishCsv, toCsv } from '../../lib/csv.js';
 import { StockMovement, recordMovement } from '../movement/movement.model.js';
 import { requireAuth, loadUser, requireAdmin } from '../auth/auth.middleware.js';
 import { getAccessibleBusinessIds } from '../user/user.access.js';
@@ -35,6 +43,10 @@ const SORT_FIELDS: Record<string, string> = {
   createdAt: 'createdAt',
 };
 
+// Excel reads a CSV as ANSI unless the file opens with a UTF-8 BOM, which turns
+// every accent into mojibake on a double click.
+const BOM = '\uFEFF';
+
 function qStr(v: unknown): string | undefined {
   return typeof v === 'string' && v.length > 0 ? v : undefined;
 }
@@ -54,8 +66,11 @@ function isDuplicateKey(err: unknown): boolean {
   return typeof err === 'object' && err !== null && (err as { code?: number }).code === 11000;
 }
 
-/** `GET /products` — the tenant's catalogue, filtered, sorted and paginated. */
-productRouter.get('/', async (req: Request, res: Response) => {
+/**
+ * The list's filter: the caller's businesses plus whatever the query narrows it
+ * to. Shared with the CSV export, so what you export is what you are looking at.
+ */
+function buildProductFilter(req: Request): Query {
   const filter: Query = {
     businessId: { $in: getAccessibleBusinessIds(req.user!) },
     ...stockStatusFilter(qStr(req.query.stockStatus)),
@@ -69,21 +84,48 @@ productRouter.get('/', async (req: Request, res: Response) => {
     const rx = new RegExp(escapeRegex(search), 'i');
     filter.$or = [{ name: rx }, { sku: rx }];
   }
+  return filter;
+}
 
-  const sortField = SORT_FIELDS[qStr(req.query.sort) ?? 'name'] ?? 'name';
-  const sortDir = req.query.order === 'desc' ? -1 : 1;
+/** The list's sort, allowlisted by {@link SORT_FIELDS}. Shared with the export. */
+function buildProductSort(req: Request): Record<string, 1 | -1> {
+  const field = SORT_FIELDS[qStr(req.query.sort) ?? 'name'] ?? 'name';
+  return { [field]: req.query.order === 'desc' ? -1 : 1 };
+}
+
+/** `GET /products` — the tenant's catalogue, filtered, sorted and paginated. */
+productRouter.get('/', async (req: Request, res: Response) => {
+  const filter = buildProductFilter(req);
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
 
   const [items, total] = await Promise.all([
     Product.find(filter)
-      .sort({ [sortField]: sortDir })
+      .sort(buildProductSort(req))
       .skip((page - 1) * limit)
       .limit(limit),
     Product.countDocuments(filter),
   ]);
 
   res.json({ items: items.map((p) => p.toJSON()), total, page, limit });
+});
+
+/**
+ * `GET /products/export.csv` — the inventory as a spreadsheet. Same filters and
+ * sort as the list and no pagination: you export what you are looking at, not the
+ * page you happen to be on. Declared before `/:id` so it is not read as an id.
+ *
+ * Written the way a Spanish Excel expects it — `;`, `22,8`, and the BOM without
+ * which it renders the accents as mojibake — so the file opens in columns on a
+ * double click. The import detects both conventions, so this still round-trips.
+ */
+productRouter.get('/export.csv', async (req: Request, res: Response) => {
+  const products = await Product.find(buildProductFilter(req)).sort(buildProductSort(req)).lean();
+  const date = new Date().toISOString().slice(0, 10);
+  res
+    .type('text/csv; charset=utf-8')
+    .set('Content-Disposition', `attachment; filename="ordo-inventario-${date}.csv"`)
+    .send(BOM + toCsv(products, [...PRODUCT_CSV_COLUMNS], spanishCsv));
 });
 
 /**
@@ -128,6 +170,142 @@ productRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
     throw err;
   }
 });
+
+/** Every movement an import leaves behind says where it came from. */
+const IMPORT_REASON = 'Importación CSV';
+
+/**
+ * `POST /products/import` — bulk load the catalogue from a spreadsheet (role
+ * `admin`). Identity is `(businessId, sku)`, the pair the unique index already
+ * enforces: a known SKU updates, an unknown one creates.
+ *
+ * A bad row is reported with its line and skipped, never aborting the file, and
+ * `dryRun` (the default) reports exactly what the real run would do without
+ * writing anything.
+ */
+productRouter.post(
+  '/import',
+  requireAdmin,
+  express.text({ type: 'text/csv', limit: '1mb' }),
+  async (req: Request, res: Response) => {
+    if (typeof req.body !== 'string') {
+      res.status(415).json({ error: 'Send the file as text/csv' });
+      return;
+    }
+    const rows = parseCsv(req.body);
+    // No header, or a header this catalogue cannot be keyed by. Either way there
+    // is nothing to import, and guessing the columns would be worse than saying so.
+    const columns = Object.keys(rows[0] ?? {});
+    if (!columns.includes('sku') || !columns.includes('name')) {
+      res.status(400).json({ error: 'The CSV needs a header with sku and name, and at least one row' });
+      return;
+    }
+
+    const dryRun = req.query.dryRun !== 'false';
+    const mode = importModeSchema.safeParse(req.query.quantityMode).data ?? 'set';
+    const businessId = req.user!.businessId;
+
+    // One read for the whole file: the rows are matched in memory rather than
+    // with a query each.
+    const known = new Map(
+      (await Product.find({ businessId, sku: { $in: rows.map((row) => row.sku) } }).lean()).map(
+        (product) => [product.sku, product] as const,
+      ),
+    );
+
+    const result: ImportResult = {
+      dryRun,
+      total: rows.length,
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [],
+    };
+
+    const seen = new Set<string>();
+
+    for (const [index, row] of rows.entries()) {
+      // The header is line 1, so the first data row is line 2 in the spreadsheet.
+      const line = index + 2;
+      const fail = (message: string) => {
+        result.skipped++;
+        result.errors.push({ row: line, sku: row.sku || undefined, message });
+      };
+
+      // Two rows for one SKU are always a mistake in the file, and applying both
+      // would leave the ledger disagreeing with the stock: the second row would be
+      // computed from a value the first has already moved.
+      if (row.sku && seen.has(row.sku)) {
+        fail('Duplicate SKU in the file');
+        continue;
+      }
+      seen.add(row.sku);
+
+      const current = known.get(row.sku);
+      const input = readProductRow(row);
+      // A create has to be complete; an update only carries what the file filled in.
+      const parsed = current
+        ? updateProductSchema.safeParse(input)
+        : createProductSchema.safeParse(input);
+      if (!parsed.success) {
+        fail(parsed.error.issues.map((i) => `${i.path.join('.') || 'row'}: ${i.message}`).join('; '));
+        continue;
+      }
+
+      // In `add` mode the column is an amount to add, so what lands on the product
+      // is the sum, and the movement's quantity is the increment itself.
+      const data = parsed.data;
+      const stock =
+        data.stock === undefined
+          ? undefined
+          : current && mode === 'add'
+            ? current.stock + data.stock
+            : data.stock;
+
+      if (dryRun) {
+        if (current) result.updated++;
+        else result.created++;
+        continue;
+      }
+
+      try {
+        if (current) {
+          const product = await Product.findOneAndUpdate(
+            { _id: current._id },
+            { ...data, ...(stock !== undefined && { stock }) },
+            { returnDocument: 'after', runValidators: true },
+          );
+          if (!product) {
+            fail('Product disappeared while importing');
+            continue;
+          }
+          result.updated++;
+          if (product.stock !== current.stock) {
+            await recordMovement(
+              product,
+              req.user!.id,
+              mode === 'add' ? 'in' : 'adjust',
+              Math.abs(product.stock - current.stock),
+              IMPORT_REASON,
+            );
+          }
+        } else {
+          const product = await Product.create({ ...data, stock, businessId });
+          result.created++;
+          if (product.stock > 0) {
+            await recordMovement(product, req.user!.id, 'in', product.stock, IMPORT_REASON);
+          }
+        }
+      } catch (err) {
+        if (!isDuplicateKey(err)) throw err;
+        // Two rows creating the same new SKU: the second one is the duplicate.
+        fail('A product with this SKU already exists');
+      }
+    }
+
+    res.json(result);
+  },
+);
 
 /** `GET /products/:id` — one product from the caller's own catalogue. */
 productRouter.get('/:id', async (req: Request, res: Response) => {
