@@ -70,9 +70,12 @@ npm install
 cp backend/.env.example backend/.env     # set JWT_SECRET to a long random string
 cp frontend/.env.example frontend/.env
 
-# 3. Seed a demo business and admin user (wipes the development database)
+# 3. Seed the demo data from backend/seed/*.csv (wipes the development database)
 npm run seed -w @ordo/backend
 ```
+
+The seed reads four CSV files in `backend/seed/` — business, users, products and
+stock movements — so the demo catalogue is edited in a spreadsheet, not in code.
 
 ### Run
 

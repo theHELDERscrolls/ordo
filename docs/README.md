@@ -8,7 +8,8 @@ where it is. Files are not created empty ahead of need.
 ## Index
 
 - [Architecture](./architecture.md) — monorepo layout, domain organization, the
-  authentication flow, and the inventory domain (data model, roles, stock status).
+  authentication flow, the inventory domain (data model, roles, stock status), the
+  stock movement ledger, and how the seed is built from CSV files.
 - [API reference](./api/README.md) — every HTTP endpoint with request/response
   JSON examples.
 - [Specs](./specs/) — what is designed but not yet built. A spec is written before

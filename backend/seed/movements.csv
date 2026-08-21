@@ -1,0 +1,219 @@
+businessSlug,sku,userEmail,type,quantity,reason,daysAgo
+taller-rodri,DIR-001,admin@tallerrodri.com,out,5,Consumo en reparación,59
+taller-rodri,SUS-004,admin@tallerrodri.com,in,2,Recepción de pedido,57
+taller-rodri,CLI-001,admin@tallerrodri.com,out,1,Consumo en reparación,56
+taller-rodri,EMB-001,admin@tallerrodri.com,in,1,Recepción de pedido,53
+taller-rodri,ACC-004,admin@tallerrodri.com,in,14,Entrada de almacén,49
+taller-rodri,SUS-001,admin@tallerrodri.com,in,6,Recepción de pedido,46
+taller-rodri,NEU-001,admin@tallerrodri.com,out,2,Venta a taller externo,44
+taller-rodri,TRA-005,admin@tallerrodri.com,out,3,Consumo en reparación,44
+taller-rodri,FRE-004,admin@tallerrodri.com,out,3,Venta en mostrador,43
+taller-rodri,FRE-003,empleado@tallerrodri.com,in,1,Reposición de proveedor,42
+taller-rodri,SUS-004,admin@tallerrodri.com,out,2,Venta en mostrador,42
+taller-rodri,DIR-003,admin@tallerrodri.com,in,1,Entrada de almacén,38
+taller-rodri,FIL-003,admin@tallerrodri.com,in,2,Entrada de almacén,37
+taller-rodri,DIS-005,empleado@tallerrodri.com,in,2,Entrada de almacén,37
+taller-rodri,DIS-006,admin@tallerrodri.com,out,2,Venta a taller externo,37
+taller-rodri,ILU-003,empleado@tallerrodri.com,in,3,Recepción de pedido,37
+taller-rodri,SUS-002,admin@tallerrodri.com,out,2,Venta en mostrador,36
+taller-rodri,DIR-001,empleado@tallerrodri.com,out,5,Venta a taller externo,36
+taller-rodri,ACE-002,admin@tallerrodri.com,in,17,Entrada de almacén,35
+taller-rodri,DIR-002,admin@tallerrodri.com,out,1,Venta a taller externo,35
+taller-rodri,TRA-004,admin@tallerrodri.com,in,4,Entrada de almacén,35
+taller-rodri,CLI-001,admin@tallerrodri.com,in,2,Reposición de proveedor,35
+taller-rodri,HER-003,admin@tallerrodri.com,out,1,Venta en mostrador,35
+taller-rodri,ILU-008,admin@tallerrodri.com,out,8,Consumo en reparación,34
+taller-rodri,NEU-001,admin@tallerrodri.com,in,6,Recepción de pedido,33
+taller-rodri,FRE-010,admin@tallerrodri.com,adjust,3,Recuento de inventario,32
+taller-rodri,NEU-002,empleado@tallerrodri.com,in,4,Entrada de almacén,32
+taller-rodri,TRA-005,admin@tallerrodri.com,in,9,Reposición de proveedor,32
+taller-rodri,ACC-004,admin@tallerrodri.com,out,16,Consumo en reparación,32
+taller-rodri,FRE-003,empleado@tallerrodri.com,out,1,Consumo en reparación,31
+taller-rodri,NEU-004,admin@tallerrodri.com,in,1,Entrada de almacén,31
+taller-rodri,NEU-009,admin@tallerrodri.com,adjust,1,Recuento de inventario,31
+taller-rodri,LIM-006,empleado@tallerrodri.com,in,5,Reposición de proveedor,31
+taller-rodri,CAR-004,admin@tallerrodri.com,in,1,Recepción de pedido,31
+taller-rodri,FRE-002,admin@tallerrodri.com,out,4,Venta en mostrador,30
+taller-rodri,EMB-001,admin@tallerrodri.com,in,2,Entrada de almacén,30
+taller-rodri,ACE-011,admin@tallerrodri.com,out,8,Venta a taller externo,29
+taller-rodri,FRE-005,admin@tallerrodri.com,out,2,Consumo en reparación,29
+taller-rodri,CLI-002,empleado@tallerrodri.com,out,3,Consumo en reparación,29
+taller-rodri,ACC-003,empleado@tallerrodri.com,in,10,Reposición de proveedor,29
+taller-rodri,ACE-006,admin@tallerrodri.com,out,3,Consumo en reparación,28
+taller-rodri,FIL-003,empleado@tallerrodri.com,in,21,Recepción de pedido,28
+taller-rodri,CLI-005,admin@tallerrodri.com,in,4,Recepción de pedido,28
+taller-rodri,FIL-005,admin@tallerrodri.com,out,7,Venta en mostrador,27
+taller-rodri,CLI-001,admin@tallerrodri.com,out,2,Consumo en reparación,27
+taller-rodri,ACE-007,empleado@tallerrodri.com,out,1,Consumo en reparación,26
+taller-rodri,ILU-008,admin@tallerrodri.com,in,4,Entrada de almacén,26
+taller-rodri,REF-003,admin@tallerrodri.com,in,4,Entrada de almacén,26
+taller-rodri,DIR-005,admin@tallerrodri.com,out,2,Venta en mostrador,26
+taller-rodri,ESC-002,admin@tallerrodri.com,in,2,Reposición de proveedor,26
+taller-rodri,ACE-001,admin@tallerrodri.com,out,17,Venta en mostrador,25
+taller-rodri,FRE-006,admin@tallerrodri.com,in,10,Entrada de almacén,25
+taller-rodri,FIL-001,admin@tallerrodri.com,out,23,Consumo en reparación,25
+taller-rodri,DIR-001,empleado@tallerrodri.com,out,1,Venta a taller externo,25
+taller-rodri,CLI-005,admin@tallerrodri.com,out,3,Venta en mostrador,25
+taller-rodri,ACE-002,admin@tallerrodri.com,out,9,Venta en mostrador,24
+taller-rodri,NEU-003,admin@tallerrodri.com,in,3,Entrada de almacén,24
+taller-rodri,BAT-001,empleado@tallerrodri.com,in,2,Recepción de pedido,24
+taller-rodri,ACC-002,admin@tallerrodri.com,in,2,Recepción de pedido,24
+taller-rodri,ILU-003,admin@tallerrodri.com,out,2,Venta a taller externo,23
+taller-rodri,LIM-003,admin@tallerrodri.com,out,2,Venta a taller externo,23
+taller-rodri,SUS-001,admin@tallerrodri.com,out,2,Venta a taller externo,23
+taller-rodri,DIR-002,admin@tallerrodri.com,out,3,Venta a taller externo,23
+taller-rodri,ESC-003,empleado@tallerrodri.com,out,2,Venta en mostrador,23
+taller-rodri,FRE-004,empleado@tallerrodri.com,out,2,Venta en mostrador,22
+taller-rodri,LIM-004,empleado@tallerrodri.com,out,4,Venta a taller externo,22
+taller-rodri,SUS-003,admin@tallerrodri.com,in,6,Reposición de proveedor,22
+taller-rodri,FIL-005,admin@tallerrodri.com,out,1,Venta a taller externo,21
+taller-rodri,NEU-009,admin@tallerrodri.com,in,36,Reposición de proveedor,21
+taller-rodri,DIS-002,admin@tallerrodri.com,out,2,Venta en mostrador,21
+taller-rodri,LIM-002,admin@tallerrodri.com,out,2,Venta en mostrador,21
+taller-rodri,MOT-003,admin@tallerrodri.com,out,2,Venta a taller externo,21
+taller-rodri,FIL-007,admin@tallerrodri.com,in,34,Recepción de pedido,20
+taller-rodri,NEU-004,empleado@tallerrodri.com,out,2,Venta a taller externo,20
+taller-rodri,ILU-007,admin@tallerrodri.com,out,10,Venta en mostrador,20
+taller-rodri,SUS-004,admin@tallerrodri.com,out,2,Venta en mostrador,20
+taller-rodri,TRA-001,empleado@tallerrodri.com,out,3,Venta en mostrador,20
+taller-rodri,ACE-011,admin@tallerrodri.com,out,4,Consumo en reparación,19
+taller-rodri,NEU-005,admin@tallerrodri.com,out,2,Venta en mostrador,19
+taller-rodri,BAT-004,admin@tallerrodri.com,out,3,Consumo en reparación,19
+taller-rodri,BAT-006,admin@tallerrodri.com,in,10,Recepción de pedido,19
+taller-rodri,HER-001,empleado@tallerrodri.com,in,2,Reposición de proveedor,19
+taller-rodri,HER-003,admin@tallerrodri.com,adjust,2,Recuento de inventario,19
+taller-rodri,ACC-004,admin@tallerrodri.com,in,11,Entrada de almacén,18
+taller-rodri,FIL-002,empleado@tallerrodri.com,out,3,Venta en mostrador,17
+taller-rodri,ENC-004,admin@tallerrodri.com,out,1,Venta en mostrador,17
+taller-rodri,DIS-001,admin@tallerrodri.com,out,2,Venta a taller externo,17
+taller-rodri,DIS-006,admin@tallerrodri.com,in,4,Entrada de almacén,17
+taller-rodri,MOT-003,empleado@tallerrodri.com,out,2,Venta en mostrador,17
+taller-rodri,DIR-003,admin@tallerrodri.com,out,1,Venta a taller externo,16
+taller-rodri,ACE-002,admin@tallerrodri.com,in,3,Reposición de proveedor,15
+taller-rodri,ACE-008,empleado@tallerrodri.com,out,14,Consumo en reparación,15
+taller-rodri,NEU-009,admin@tallerrodri.com,out,3,Consumo en reparación,15
+taller-rodri,HER-006,admin@tallerrodri.com,in,2,Recepción de pedido,15
+taller-rodri,NEU-001,empleado@tallerrodri.com,out,3,Venta en mostrador,14
+taller-rodri,NEU-006,empleado@tallerrodri.com,out,2,Venta a taller externo,14
+taller-rodri,BAT-002,admin@tallerrodri.com,in,5,Entrada de almacén,14
+taller-rodri,BAT-005,admin@tallerrodri.com,in,2,Reposición de proveedor,14
+taller-rodri,ILU-006,admin@tallerrodri.com,in,2,Recepción de pedido,14
+taller-rodri,LIM-002,admin@tallerrodri.com,in,5,Reposición de proveedor,14
+taller-rodri,LIM-003,admin@tallerrodri.com,in,5,Recepción de pedido,14
+taller-rodri,NEU-002,empleado@tallerrodri.com,in,6,Entrada de almacén,13
+taller-rodri,ENC-003,admin@tallerrodri.com,adjust,1,Merma detectada,13
+taller-rodri,DIS-004,empleado@tallerrodri.com,out,2,Venta en mostrador,13
+taller-rodri,DIS-005,admin@tallerrodri.com,out,4,Venta a taller externo,13
+taller-rodri,SUS-002,admin@tallerrodri.com,out,1,Venta en mostrador,13
+taller-rodri,SUS-003,empleado@tallerrodri.com,out,4,Venta en mostrador,13
+taller-rodri,SUS-005,empleado@tallerrodri.com,in,2,Entrada de almacén,13
+taller-rodri,DIR-001,admin@tallerrodri.com,in,10,Recepción de pedido,13
+taller-rodri,ESC-003,admin@tallerrodri.com,out,2,Consumo en reparación,13
+taller-rodri,TRA-001,empleado@tallerrodri.com,out,1,Consumo en reparación,13
+taller-rodri,ACE-001,admin@tallerrodri.com,out,10,Consumo en reparación,12
+taller-rodri,ACE-004,admin@tallerrodri.com,out,2,Venta en mostrador,12
+taller-rodri,NEU-010,empleado@tallerrodri.com,adjust,3,Rotura en almacén,12
+taller-rodri,REF-001,admin@tallerrodri.com,in,14,Entrada de almacén,12
+taller-rodri,LIM-004,admin@tallerrodri.com,out,12,Venta en mostrador,12
+taller-rodri,EMB-001,admin@tallerrodri.com,adjust,1,Rotura en almacén,12
+taller-rodri,ESC-005,empleado@tallerrodri.com,in,12,Entrada de almacén,12
+taller-rodri,CLI-001,empleado@tallerrodri.com,in,1,Recepción de pedido,12
+taller-rodri,CLI-005,admin@tallerrodri.com,out,8,Venta a taller externo,12
+taller-rodri,ACE-012,admin@tallerrodri.com,adjust,3,Rotura en almacén,11
+taller-rodri,FRE-010,admin@tallerrodri.com,in,1,Reposición de proveedor,11
+taller-rodri,BAT-007,admin@tallerrodri.com,out,1,Consumo en reparación,11
+taller-rodri,ILU-004,admin@tallerrodri.com,in,4,Entrada de almacén,11
+taller-rodri,REF-002,admin@tallerrodri.com,in,4,Recepción de pedido,11
+taller-rodri,REF-003,admin@tallerrodri.com,in,5,Recepción de pedido,11
+taller-rodri,TRA-004,admin@tallerrodri.com,in,2,Reposición de proveedor,11
+taller-rodri,TRA-005,admin@tallerrodri.com,in,2,Recepción de pedido,11
+taller-rodri,CLI-004,admin@tallerrodri.com,out,2,Consumo en reparación,11
+taller-rodri,FRE-004,empleado@tallerrodri.com,in,4,Entrada de almacén,10
+taller-rodri,FRE-006,admin@tallerrodri.com,adjust,2,Merma detectada,10
+taller-rodri,NEU-003,admin@tallerrodri.com,out,3,Venta en mostrador,10
+taller-rodri,SUS-001,empleado@tallerrodri.com,out,2,Venta a taller externo,10
+taller-rodri,MOT-007,admin@tallerrodri.com,out,5,Venta a taller externo,10
+taller-rodri,FRE-009,empleado@tallerrodri.com,out,6,Venta a taller externo,9
+taller-rodri,FIL-001,admin@tallerrodri.com,out,22,Consumo en reparación,9
+taller-rodri,FIL-003,empleado@tallerrodri.com,out,8,Venta a taller externo,9
+taller-rodri,FIL-006,empleado@tallerrodri.com,out,1,Venta en mostrador,9
+taller-rodri,ENC-005,empleado@tallerrodri.com,in,42,Recepción de pedido,9
+taller-rodri,ILU-008,admin@tallerrodri.com,in,14,Entrada de almacén,9
+taller-rodri,ESC-002,empleado@tallerrodri.com,out,1,Venta a taller externo,9
+taller-rodri,HER-006,admin@tallerrodri.com,in,1,Recepción de pedido,9
+taller-rodri,ACC-004,admin@tallerrodri.com,in,24,Recepción de pedido,9
+taller-rodri,ACC-006,admin@tallerrodri.com,in,1,Entrada de almacén,9
+taller-rodri,FRE-003,empleado@tallerrodri.com,out,2,Venta en mostrador,8
+taller-rodri,FRE-008,admin@tallerrodri.com,out,2,Venta en mostrador,8
+taller-rodri,FIL-004,admin@tallerrodri.com,adjust,1,Rotura en almacén,8
+taller-rodri,NEU-005,empleado@tallerrodri.com,in,11,Entrada de almacén,8
+taller-rodri,BAT-001,admin@tallerrodri.com,out,2,Venta en mostrador,8
+taller-rodri,LIM-006,admin@tallerrodri.com,in,1,Recepción de pedido,8
+taller-rodri,CAR-002,admin@tallerrodri.com,in,1,Entrada de almacén,8
+taller-rodri,CAR-004,admin@tallerrodri.com,in,3,Reposición de proveedor,8
+taller-rodri,HER-002,admin@tallerrodri.com,out,2,Venta en mostrador,8
+taller-rodri,ACE-007,admin@tallerrodri.com,in,17,Entrada de almacén,7
+taller-rodri,FRE-002,admin@tallerrodri.com,out,4,Venta en mostrador,7
+taller-rodri,NEU-004,empleado@tallerrodri.com,out,1,Venta a taller externo,7
+taller-rodri,NEU-009,admin@tallerrodri.com,in,21,Reposición de proveedor,7
+taller-rodri,DIS-002,admin@tallerrodri.com,in,4,Entrada de almacén,7
+taller-rodri,REF-005,empleado@tallerrodri.com,out,1,Consumo en reparación,7
+taller-rodri,SUS-004,empleado@tallerrodri.com,out,2,Venta en mostrador,7
+taller-rodri,SUS-006,admin@tallerrodri.com,out,4,Venta en mostrador,7
+taller-rodri,DIR-005,admin@tallerrodri.com,in,2,Entrada de almacén,7
+taller-rodri,EMB-002,admin@tallerrodri.com,out,1,Venta en mostrador,7
+taller-rodri,MOT-006,admin@tallerrodri.com,out,1,Consumo en reparación,7
+taller-rodri,ACE-002,admin@tallerrodri.com,out,3,Venta a taller externo,6
+taller-rodri,ACE-006,admin@tallerrodri.com,out,9,Venta en mostrador,6
+taller-rodri,ACE-009,admin@tallerrodri.com,in,4,Entrada de almacén,6
+taller-rodri,FIL-002,admin@tallerrodri.com,out,5,Venta a taller externo,6
+taller-rodri,FIL-005,admin@tallerrodri.com,adjust,1,Recuento de inventario,6
+taller-rodri,DIS-003,admin@tallerrodri.com,out,3,Venta a taller externo,6
+taller-rodri,ILU-003,admin@tallerrodri.com,adjust,3,Merma detectada,6
+taller-rodri,ESC-002,admin@tallerrodri.com,out,2,Consumo en reparación,6
+taller-rodri,CAR-003,admin@tallerrodri.com,out,3,Venta en mostrador,6
+taller-rodri,HER-001,admin@tallerrodri.com,out,2,Venta a taller externo,6
+taller-rodri,HER-003,admin@tallerrodri.com,adjust,3,Recuento de inventario,6
+taller-rodri,FRE-005,admin@tallerrodri.com,out,1,Venta a taller externo,5
+taller-rodri,FRE-010,admin@tallerrodri.com,in,6,Entrada de almacén,5
+taller-rodri,FIL-006,empleado@tallerrodri.com,in,1,Recepción de pedido,5
+taller-rodri,NEU-005,admin@tallerrodri.com,adjust,3,Rotura en almacén,5
+taller-rodri,BAT-006,admin@tallerrodri.com,in,6,Entrada de almacén,5
+taller-rodri,ILU-007,admin@tallerrodri.com,out,9,Venta a taller externo,5
+taller-rodri,LIM-003,admin@tallerrodri.com,out,8,Venta en mostrador,5
+taller-rodri,DIR-004,empleado@tallerrodri.com,in,13,Reposición de proveedor,5
+taller-rodri,EMB-003,admin@tallerrodri.com,in,4,Entrada de almacén,5
+taller-rodri,TRA-002,admin@tallerrodri.com,in,18,Entrada de almacén,5
+taller-rodri,CLI-002,empleado@tallerrodri.com,in,4,Entrada de almacén,5
+taller-rodri,ACC-002,admin@tallerrodri.com,in,1,Reposición de proveedor,5
+taller-rodri,ACC-003,admin@tallerrodri.com,in,12,Recepción de pedido,5
+taller-rodri,ACE-008,empleado@tallerrodri.com,in,6,Entrada de almacén,4
+taller-rodri,DIS-006,empleado@tallerrodri.com,out,1,Consumo en reparación,4
+taller-rodri,REF-004,empleado@tallerrodri.com,in,14,Recepción de pedido,4
+taller-rodri,TRA-001,empleado@tallerrodri.com,out,2,Venta a taller externo,4
+taller-rodri,CLI-004,admin@tallerrodri.com,in,1,Entrada de almacén,4
+taller-rodri,FIL-008,empleado@tallerrodri.com,adjust,1,Recuento de inventario,3
+taller-rodri,NEU-003,admin@tallerrodri.com,in,5,Reposición de proveedor,3
+taller-rodri,BAT-004,empleado@tallerrodri.com,in,5,Reposición de proveedor,3
+taller-rodri,ENC-004,admin@tallerrodri.com,in,2,Recepción de pedido,3
+taller-rodri,ENC-006,admin@tallerrodri.com,out,2,Consumo en reparación,3
+taller-rodri,DIS-001,admin@tallerrodri.com,in,2,Entrada de almacén,3
+taller-rodri,SUS-002,admin@tallerrodri.com,out,2,Consumo en reparación,3
+taller-rodri,DIR-003,admin@tallerrodri.com,in,1,Entrada de almacén,3
+taller-rodri,CLI-003,admin@tallerrodri.com,in,1,Recepción de pedido,3
+taller-rodri,ACC-001,admin@tallerrodri.com,in,8,Reposición de proveedor,3
+taller-rodri,ACE-005,admin@tallerrodri.com,in,5,Entrada de almacén,2
+taller-rodri,FRE-003,admin@tallerrodri.com,in,3,Entrada de almacén,2
+taller-rodri,FIL-007,empleado@tallerrodri.com,out,16,Consumo en reparación,2
+taller-rodri,NEU-007,admin@tallerrodri.com,out,3,Venta a taller externo,2
+taller-rodri,NEU-010,admin@tallerrodri.com,adjust,3,Rotura en almacén,2
+taller-rodri,BAT-006,empleado@tallerrodri.com,out,4,Venta a taller externo,2
+taller-rodri,REF-005,admin@tallerrodri.com,out,1,Venta en mostrador,2
+taller-rodri,DIR-002,admin@tallerrodri.com,in,5,Recepción de pedido,2
+taller-rodri,ESC-004,admin@tallerrodri.com,out,2,Venta en mostrador,2
+taller-rodri,MOT-004,admin@tallerrodri.com,out,3,Consumo en reparación,2
+taller-rodri,HER-004,admin@tallerrodri.com,out,3,Consumo en reparación,2
+taller-rodri,ACE-011,admin@tallerrodri.com,out,2,Venta en mostrador,1
+taller-rodri,REF-002,admin@tallerrodri.com,out,7,Venta a taller externo,1
+taller-rodri,ESC-001,admin@tallerrodri.com,adjust,1,Rotura en almacén,1
+taller-rodri,MOT-003,empleado@tallerrodri.com,in,1,Reposición de proveedor,1
