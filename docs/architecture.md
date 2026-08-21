@@ -33,7 +33,7 @@ backend/src/
 │   ├── business/   Business Mongoose model (embedded branding)
 │   ├── user/       User model (bcrypt, businessId) + getAccessibleBusinessIds
 │   ├── product/    Product model + inventory CRUD and list API
-│   ├── movement/   StockMovement model (the stock ledger)
+│   ├── movement/   StockMovement model + the stock ledger API
 │   └── dashboard/  inventory stats snapshot + value breakdown endpoints
 ├── lib/        dependency-free helpers shared across modules (CSV read/write)
 ├── types/      Express request augmentation (req.userId, req.user)
@@ -156,9 +156,32 @@ Two indexes, `{ businessId, createdAt: -1 }` and `{ productId, createdAt: -1 }`,
 cover the two ways it is read: the business's history newest first, and one
 product's own sheet.
 
-The design, including the rules that keep stock and ledger in agreement, is in
-[spec 001](./specs/001-stock-movements-and-csv.md). The API and the UI arrive in
-later phases; today the model exists and the seed writes to it.
+Every write that touches `stock` records its movement in the same request, so the
+two can never drift apart:
+
+| Trigger | Movement | Stock |
+|---|---|---|
+| `POST /movements` with `type: 'in'` | `in` | `$inc: +quantity` |
+| `POST /movements` with `type: 'out'` | `out` | `$inc: -quantity`, guarded by `stock: { $gte: quantity }` |
+| `POST /products` with `stock > 0` | `in`, reason "Stock inicial" | set by the create |
+| `PATCH /products/:id` that changes `stock` | `adjust`, quantity `abs(new - old)` | set by the patch |
+| `DELETE /products/:id` | none — the product's movements go with it | n/a |
+
+`recordMovement` in the model is the single place that writes one, and it takes
+`resultingStock` from the product as already saved rather than recomputing it.
+
+The exit guard is what makes a sale-like movement safe: the availability check and
+the decrement are one atomic `findOneAndUpdate`, so two concurrent exits cannot both
+pass the check and drive the stock negative. Nothing matching, when the product does
+exist, means insufficient stock — a `409`.
+
+`adjust` is never accepted from `POST /movements`. It exists so that a correction
+made in the product form still shows up in the history, and its `quantity` is the
+size of the correction, not the new stock. There is no update and no delete on a
+movement at all: a mistake is corrected with an opposing entry.
+
+The full design is in [spec 001](./specs/001-stock-movements-and-csv.md). The UI
+arrives in a later phase.
 
 ## CSV
 

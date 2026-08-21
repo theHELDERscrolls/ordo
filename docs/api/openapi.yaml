@@ -14,6 +14,7 @@ tags:
   - name: Health
   - name: Auth
   - name: Products
+  - name: Movements
   - name: Dashboard
 
 paths:
@@ -188,6 +189,60 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /movements:
+    get:
+      tags: [Movements]
+      summary: List stock movements, newest first
+      parameters:
+        - { name: productId, in: query, schema: { type: string }, description: Only this product's history }
+        - { name: type, in: query, schema: { type: string, enum: [in, out, adjust] } }
+        - { name: from, in: query, schema: { type: string, format: date }, description: Inclusive lower bound on createdAt }
+        - { name: to, in: query, schema: { type: string, format: date }, description: Inclusive upper bound; a bare date covers the whole day }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: A page of movements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Movement' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  limit: { type: integer }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Movements]
+      summary: Record an entry or an exit (admin only)
+      description: >-
+        Only `in` and `out` are accepted. An `adjust` is written by the system when
+        a correction arrives through another path, so it cannot be posted here.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MovementInput' }
+      responses:
+        '201':
+          description: The recorded movement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Movement' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: The exit exceeds the stock available
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
   /dashboard/stats:
     get:
       tags: [Dashboard]
@@ -325,6 +380,29 @@ components:
         minStock: { type: number, default: 0 }
         costPrice: { type: number, default: 0 }
         salePrice: { type: number, default: 0 }
+    Movement:
+      type: object
+      properties:
+        id: { type: string }
+        businessId: { type: string }
+        productId: { type: string }
+        productName: { type: string }
+        productSku: { type: string }
+        type: { type: string, enum: [in, out, adjust] }
+        quantity: { type: number, description: Always positive; the sign lives in type }
+        resultingStock: { type: number, description: The product's stock after this movement }
+        reason: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        createdAt: { type: string, format: date-time }
+    MovementInput:
+      type: object
+      required: [productId, type, quantity]
+      properties:
+        productId: { type: string }
+        type: { type: string, enum: [in, out] }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        reason: { type: string, maxLength: 120 }
     ProductFacets:
       type: object
       properties:

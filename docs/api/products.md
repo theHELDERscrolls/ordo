@@ -55,6 +55,8 @@ Response `200`:
 ## POST `/products`
 
 Create a product (role `admin`). `businessId` comes from the session, not the body.
+A product created with `stock > 0` opens its ledger with an `in` movement, reason
+"Stock inicial".
 
 Request body:
 
@@ -108,18 +110,23 @@ Errors: `404` not found, or not in the caller's business.
 
 Update a subset of fields (role `admin`). Returns the updated product.
 
-Request body (any subset of the creatable fields):
+Request body (any subset of the creatable fields). Fields that are not sent are
+left as they are:
 
 ```json
 { "stock": 12, "salePrice": 18 }
 ```
+
+A body that changes `stock` also records an `adjust` movement in the ledger, whose
+quantity is the size of the correction. See [movements.md](movements.md).
 
 Errors: `400` invalid body · `403` not an admin · `404` not found · `409` SKU
 already exists.
 
 ## DELETE `/products/:id`
 
-Delete a product (role `admin`).
+Delete a product (role `admin`). Its stock movements are deleted with it: a ledger
+against something that no longer exists explains nothing.
 
 Response `204`: no content (empty body).
 
