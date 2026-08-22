@@ -4,16 +4,23 @@ import mongoose from 'mongoose';
 import { createMovementSchema, movementTypeSchema } from '@ordo/shared';
 import { StockMovement, recordMovement } from './movement.model.js';
 import { Product } from '../product/product.model.js';
-import { requireAuth, loadUser, requireAdmin } from '../auth/auth.middleware.js';
+import { requireAuth, loadUser } from '../auth/auth.middleware.js';
 import { getAccessibleBusinessIds } from '../user/user.access.js';
 
 /** A Mongo query, assembled incrementally with operators such as `$in` and `$gte`. */
 type Query = Record<string, unknown>;
 
 /**
- * The stock ledger. Reading is open to any member; recording a movement requires
- * `admin`. There is no update and no delete: a ledger is append-only, and a
- * mistake is corrected with an opposing movement.
+ * The stock ledger. Both reading and recording are open to any member of the
+ * business: an `employee` is who actually moves the stock behind a counter, and a
+ * shop where every sale has to wait for the owner to type it is a shop that stops
+ * recording sales. What stays `admin`-only is the catalogue itself — prices, the
+ * reorder point, creating and deleting products — which is where the damage would
+ * be.
+ *
+ * There is no update and no delete: a ledger is append-only, and a mistake is
+ * corrected with an opposing movement, which is what keeps the trail honest even
+ * with more hands writing to it.
  */
 export const movementRouter = express.Router();
 
@@ -118,11 +125,11 @@ movementRouter.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * `POST /movements` — record an entry or an exit (role `admin`). The stock and the
- * ledger move together, and `adjust` is not accepted here: a correction is
- * something the system writes, never something a client declares.
+ * `POST /movements` — record an entry or an exit, for any member of the business.
+ * The stock and the ledger move together, and `adjust` is not accepted here: a
+ * correction is something the system writes, never something a client declares.
  */
-movementRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
+movementRouter.post('/', async (req: Request, res: Response) => {
   const parsed = createMovementSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid movement', details: parsed.error.flatten() });
