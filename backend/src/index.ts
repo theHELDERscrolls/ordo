@@ -9,7 +9,10 @@ import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 
 const app = express();
 
-app.use(cors());
+// `Content-Disposition` is not one of the headers CORS exposes by default, and the
+// browser hides what it does not expose: without this the CSV export would download
+// under a name the client had to invent instead of the one the server sends.
+app.use(cors({ exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
