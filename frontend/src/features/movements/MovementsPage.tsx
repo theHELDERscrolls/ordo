@@ -9,6 +9,7 @@ import { ProductPicker } from './ProductPicker';
 import { signedQuantity } from './movement-format';
 import { useMovements, type MovementFilters } from './useMovements';
 import { dateTime, relativeTime } from '@/shared/format';
+import { Pagination } from '@/shared/ui/Pagination';
 import { buttonClasses } from '@/shared/ui/button-styles';
 
 const LIMIT = 20;
@@ -78,9 +79,6 @@ export function MovementsPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
-  const start = total === 0 ? 0 : (page - 1) * LIMIT + 1;
-  const end = Math.min(page * LIMIT, total);
   const hasFilters = Boolean(productId || type || from || to);
 
   function clearFilters() {
@@ -89,20 +87,24 @@ export function MovementsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Movimientos</h1>
           <p className="mt-1 text-sm text-fg-muted transition-colors">
             El historial de entradas, salidas y ajustes de tu stock.
           </p>
         </div>
+        {/* Icon alone on a phone: the label does not fit beside the title, and a button
+            that overflows the header is worse than one that has to be recognised. */}
         <button
           type="button"
+          title="Registrar movimiento"
+          aria-label="Registrar movimiento"
           onClick={() => setFormOpen(true)}
           className={`shrink-0 ${buttonClasses('primary')}`}
         >
           <Plus size={16} strokeWidth={2} />
-          Registrar movimiento
+          <span className="hidden sm:inline">Registrar movimiento</span>
         </button>
       </div>
 
@@ -277,34 +279,7 @@ export function MovementsPage() {
         )}
       </div>
 
-      {total > LIMIT && (
-        <div className="mt-6 flex items-center justify-between gap-4 text-sm text-fg-muted">
-          <span className="tabular-nums">
-            {start}–{end} de {total}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="rounded-md border border-border px-3 py-1.5 transition-colors hover:text-fg disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <span className="px-2 tabular-nums">
-              Página {page} de {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded-md border border-border px-3 py-1.5 transition-colors hover:text-fg disabled:opacity-40"
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
 
       {/* Keyed on the filter: the dialog opens on the product the page is filtered by,
           and a key is what makes that initial value follow a filter change instead of
