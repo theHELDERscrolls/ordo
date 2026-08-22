@@ -59,6 +59,7 @@ frontend/src/
 │   ├── auth/       LoginPage
 │   ├── dashboard/  DashboardPage + its data hooks, charts/ for the Recharts layer
 │   ├── inventory/  list, detail dialog, product form, and its data hooks
+│   ├── movements/  the ledger page, its filters, the register dialog and its hooks
 │   └── settings/   theme, language, business, log out
 └── shared/ui/  AppLayout (the nav shell) + reusable components (Button, Select,
                 Modal, ConfirmDialog, StockBadge, TextField, ThemeToggle)
@@ -130,6 +131,8 @@ both writes are a deliberate second step. The open product lives in the URL
 the phone's back button close it. Editing stays a page rather than a second mode
 inside the sheet — ten fields in two columns need the room — but saving returns to
 the product's sheet instead of the bare list, so a change is seen where it was made.
+The sheet also ends in the product's last five movements, with a link into the rest,
+so the number at the top of it is explained where it is read.
 
 Modals are built on the native `<dialog>` (`shared/ui/Modal.tsx`). `showModal()`
 already gives the focus trap, Escape, the top layer and an inert, unscrollable
@@ -182,8 +185,41 @@ made in the product form still shows up in the history, and its `quantity` is th
 size of the correction, not the new stock. There is no update and no delete on a
 movement at all: a mistake is corrected with an opposing entry.
 
-The full design is in [spec 001](./specs/001-stock-movements-and-csv.md). The UI
-arrives in a later phase.
+On the client the ledger is its own section (`/movements`), a third entry in the nav
+beside the panel and the inventory. It reads like the inventory does, for the same
+reasons: the filters (product, type, date range) live in the URL rather than in
+component state, so the product sheet can link straight into one product's history
+and a filtered view is shareable; the type is parsed through the shared enum, so a
+hand-edited value falls back to "all" instead of reaching the API; and the table
+becomes a list of cards below `md`. There is no row to open — a movement has no
+detail beyond the row, and no edit behind it.
+
+The product filter is not a dropdown. The catalogue runs past what the list endpoint
+returns in one page, so the options cannot be loaded up front: `ProductPicker` is a
+search field that queries the API and holds the choice as an id, which is what makes
+the filter survive a reload and a shared URL. Registering a movement uses the same
+control, so the two places that name a product name it the same way.
+
+`useCreateMovement` invalidates the ledger, the inventory list, the product's own
+sheet and the panel's figures, because a movement changes the number all four read.
+The facets are left alone: a movement never introduces a category or a supplier.
+Only `in` and `out` are offered in the dialog, mirroring the API — an `adjust` is
+something the system writes, never something a client declares.
+
+Registering is the one write open to `employee`, and it is deliberate. Everywhere
+else the split holds — the catalogue, its prices and its reorder points are `admin` —
+but the person behind the counter is the one who actually moves the stock, and a shop
+where every sale waits for the owner to type it is a shop that stops recording sales.
+The ledger is safe in more hands than the catalogue precisely because it is
+append-only: an employee can add to the trail and cannot rewrite it, every entry
+carries who made it, and an exit still cannot drive the stock negative.
+
+The dates are relative ("hace 2 días") through `Intl.RelativeTimeFormat`, with the
+exact timestamp as the element's `title`: a history is read for how recent an entry
+is, not for which Tuesday it landed on, and the native formatter means no phrasing
+table and no date library.
+
+The full design is in [spec 001](./specs/001-stock-movements-and-csv.md).
 
 ## CSV
 

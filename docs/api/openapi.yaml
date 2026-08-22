@@ -293,10 +293,12 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       tags: [Movements]
-      summary: Record an entry or an exit (admin only)
+      summary: Record an entry or an exit (any role)
       description: >-
-        Only `in` and `out` are accepted. An `adjust` is written by the system when
-        a correction arrives through another path, so it cannot be posted here.
+        Open to `admin` and `employee`: the person behind the counter is the one who
+        moves the stock. Only `in` and `out` are accepted — an `adjust` is written by
+        the system when a correction arrives through another path, so it cannot be
+        posted here.
       requestBody:
         required: true
         content:
@@ -310,7 +312,6 @@ paths:
               schema: { $ref: '#/components/schemas/Movement' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: The exit exceeds the stock available

@@ -140,13 +140,23 @@ export const importResultSchema = z.object({
 All routes keep the existing middleware chain: `requireAuth, loadUser` for reads and
 `requireAdmin` on top for writes, scoped by `getAccessibleBusinessIds(req.user)`.
 
+Recording a movement is the one exception, settled during phase 4: `POST /movements`
+carries no `requireAdmin`. This spec had it as `admin`, which read well on the roles
+table and badly against the shop it is written for — the person behind the counter is
+who moves the stock, and a sale that has to wait for the owner to type it is a sale
+that goes unrecorded, which defeats the ledger's entire purpose. The ledger is safe in
+more hands than the catalogue precisely because it is append-only: an employee can add
+to the trail and cannot rewrite it, every entry carries who made it, and the exit guard
+still holds. The catalogue — prices, reorder points, creating and deleting products,
+the CSV import — stays `admin`.
+
 ### `GET /movements`
 
 Query: `productId`, `type`, `from`, `to` (ISO dates), `page`, `limit` (max 100).
 Sorted newest first. Product name/SKU and user name are resolved with `populate` and
 flattened in the response, so the table needs one request.
 
-### `POST /movements` (admin)
+### `POST /movements` (any role)
 
 Body `createMovementSchema`. Returns `201` with the movement.
 `404` if the product is not in the caller's business, `409` `{ "error": "Insufficient stock" }`
@@ -268,7 +278,7 @@ over these files; the CSVs in the repo are the source of truth for the seed.
 - `MovementsPage.tsx` at `/movements` — the history, newest first: product, type badge,
   quantity signed by type, resulting stock, reason, user, relative date. Filters for
   product, type and date range in the URL, like the inventory's already are.
-- `MovementFormDialog.tsx` — admin only, opened from the page header: product, type
+- `MovementFormDialog.tsx` — any role, opened from the page header: product, type
   (`in`/`out`), quantity, optional reason. Built on the existing `Modal`.
 - `useMovements.ts` / `useCreateMovement.ts` — React Query, invalidating `products`,
   `product`, `movements`, `dashboard-stats` and `inventory-breakdown` on success, the
@@ -318,9 +328,9 @@ changes stock leaves movements behind.
 **Phase 4 — Movements UI.**
 The page, the dialog, the nav entry, and the recent-movements block in the product
 sheet.
-Done when: an `employee` can browse the history but sees no "Registrar movimiento"
-button, and registering a movement updates the inventory and the dashboard without a
-reload.
+Done when: an `employee` can browse the history and record a movement in it while
+still seeing no write action on the catalogue, and registering a movement updates the
+inventory and the dashboard without a reload.
 
 **Phase 5 — Import/export UI.**
 The two header buttons and `ImportDialog` with its preview.
