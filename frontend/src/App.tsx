@@ -3,6 +3,7 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { InventoryPage } from '@/features/inventory/InventoryPage';
 import { ProductFormPage } from '@/features/inventory/ProductFormPage';
+import { MovementsPage } from '@/features/movements/MovementsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { RequireAuth } from '@/core/auth/RequireAuth';
 import { AppLayout } from '@/shared/ui/AppLayout';
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/inventory/new" element={<ProductFormPage />} />
         <Route path="/inventory/:id/edit" element={<ProductFormPage />} />
+        <Route path="/movements" element={<MovementsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
     </Routes>

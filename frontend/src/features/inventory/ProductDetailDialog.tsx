@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { useDeleteProduct, useProduct } from './useProductMutations';
 import { useAuth } from '@/core/auth/use-auth';
+import { RecentMovements } from '@/features/movements/RecentMovements';
 import { money } from '@/shared/format';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { Modal } from '@/shared/ui/Modal';
@@ -103,6 +104,8 @@ export function ProductDetailDialog({ productId, onClose }: ProductDetailDialogP
           {product.description && (
             <p className="mt-5 text-sm leading-relaxed text-fg-muted">{product.description}</p>
           )}
+
+          <RecentMovements productId={product.id} />
 
           {isAdmin && (
             <>
