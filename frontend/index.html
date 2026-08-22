@@ -1,10 +1,43 @@
 <!doctype html>
-<html lang="en">
+<!-- The interface is in Spanish, which is what `lang` describes for a screen
+     reader. It becomes a runtime attribute the day Settings offers a second one. -->
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <title>Ordo — Inventario y reposición para pequeños negocios</title>
+    <meta
+      name="description"
+      content="Ordo centraliza el catálogo y el stock de tu negocio: qué tienes, qué está por debajo del mínimo y por qué cambió cada número."
+    />
+
+    <!-- Nothing to index: there is no public signup and every screen sits behind the
+         login, so all a crawler could list is one business's sign-in page. This line
+         goes the day Ordo grows a public product page in front of the app. -->
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- The two values of --bg, so the browser and the phone paint their own chrome
+         in the theme the visitor is already using. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
+
+    <!-- The SVG mark follows the light/dark theme on its own; the PNG is for iOS,
+         which does not take an SVG for a home-screen icon. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- For the link pasted into a chat. `og:url` and `og:image` are deliberately
+         absent: both require an absolute URL, and there is no domain yet. Add them
+         once the app is deployed, ideally from VITE_SITE_URL rather than by hand. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ordo" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content="Ordo — Inventario y reposición para pequeños negocios" />
+    <meta
+      property="og:description"
+      content="Ordo centraliza el catálogo y el stock de tu negocio: qué tienes, qué está por debajo del mínimo y por qué cambió cada número."
+    />
   </head>
   <body>
     <div id="root"></div>
