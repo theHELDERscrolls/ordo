@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Settings } from 'lucide-react';
+import { ArrowLeftRight, LayoutDashboard, Package, Settings } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
@@ -8,6 +8,7 @@ import { useAuth } from '@/core/auth/use-auth';
 const primaryNav = [
   { to: '/', label: 'Panel', icon: LayoutDashboard, end: true },
   { to: '/inventory', label: 'Inventario', icon: Package, end: false },
+  { to: '/movements', label: 'Movimientos', icon: ArrowLeftRight, end: false },
 ];
 const settingsNav = { to: '/settings', label: 'Ajustes', icon: Settings, end: false };
 

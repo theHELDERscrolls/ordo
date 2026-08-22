@@ -1,8 +1,11 @@
 # Stock movement endpoints
 
 All routes require `Authorization: Bearer <token>` and are scoped to the caller's
-business. Reading is open to `admin` and `employee`; recording a movement requires
-the `admin` role.
+business. Both reading and recording are open to `admin` and `employee`, which is
+the one place the app's usual split does not apply: the person behind the counter is
+the one who moves the stock, and a shop where every sale waits for the owner is a
+shop that stops recording sales. The catalogue itself — prices, the reorder point,
+creating and deleting products, importing a CSV — stays `admin`.
 
 The ledger is append-only: there is no `PATCH` and no `DELETE`. A mistake is
 corrected by recording the opposing movement, which is the whole point of having an
@@ -51,8 +54,8 @@ who asked for one product would be worse than refusing.
 
 ## POST `/movements`
 
-Record an entry or an exit (role `admin`). The stock and the ledger move together,
-in one request.
+Record an entry or an exit (any role). The stock and the ledger move together, in
+one request.
 
 Only `in` and `out` are accepted. An `adjust` is written by the system when a
 correction arrives through another path (editing the stock in the product form, or a
@@ -77,7 +80,6 @@ Response `201`: the recorded movement, in the shape above.
 | Code | Meaning |
 |------|---------|
 | `400` | Invalid body — unknown `type`, `quantity` not positive |
-| `403` | The caller is not an `admin` |
 | `404` | The product is not in the caller's business |
 | `409` | `{ "error": "Insufficient stock" }` — the exit exceeds what is available |
 
