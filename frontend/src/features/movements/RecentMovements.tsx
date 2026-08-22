@@ -36,7 +36,7 @@ export function RecentMovements({ productId }: { productId: string }) {
         {items.map((m) => (
           <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
             <span className="flex min-w-0 items-center gap-2">
-              <MovementBadge type={m.type} />
+              <MovementBadge type={m.type} compact />
               <span className="truncate text-sm text-fg-muted">{m.reason}</span>
             </span>
             <span className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums">
