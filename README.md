@@ -14,10 +14,10 @@ This project is developed as a **Master's Thesis (TFM)**.
 
 ## Project status
 
-**Early development.** The foundation and the authentication slice are in place:
-an npm-workspaces monorepo, a shared Zod contract, a login flow with JWT-protected
-routes, and a white-label dashboard shell. Product and inventory features come
-next.
+**In development.** The catalogue works end to end: an npm-workspaces monorepo, a
+shared Zod contract, a login flow with JWT-protected routes and a white-label shell,
+the product inventory with its search, filters and dashboard, an append-only stock
+movement ledger, and the CSV path in and out of the catalogue. Deployment is next.
 
 ## Tech stack
 

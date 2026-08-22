@@ -58,11 +58,11 @@ frontend/src/
 ├── features/   screens grouped by domain
 │   ├── auth/       LoginPage
 │   ├── dashboard/  DashboardPage + its data hooks, charts/ for the Recharts layer
-│   ├── inventory/  list, detail dialog, product form, and its data hooks
+│   ├── inventory/  list, detail dialog, product form, CSV import/export, and hooks
 │   ├── movements/  the ledger page, its filters, the register dialog and its hooks
 │   └── settings/   theme, language, business, log out
 └── shared/ui/  AppLayout (the nav shell) + reusable components (Button, Select,
-                Modal, ConfirmDialog, StockBadge, TextField, ThemeToggle)
+                Modal, ConfirmDialog, Pagination, StockBadge, TextField, ThemeToggle)
 ```
 
 The `@` path alias resolves to `src/`. Styling is Tailwind CSS v4 with semantic
@@ -214,6 +214,15 @@ The ledger is safe in more hands than the catalogue precisely because it is
 append-only: an employee can add to the trail and cannot rewrite it, every entry
 carries who made it, and an exit still cannot drive the stock negative.
 
+`MovementBadge` is the second place after the stock badge where colour does work
+rather than decorate: an entry is green, an exit red and an adjustment blue, as a
+tenth-opacity tint with the text a step darker in light mode and a step lighter in
+dark. A ledger is scanned down a column for direction, which a word alone makes slow.
+The three are fixed hues and not the tenant accent, which is already "agotado" and
+which for a business with a green accent would paint every exit as an entry; amber is
+spoken for by "stock bajo" for the same reason. In the product sheet's recent list the
+label drops to `sr-only` below `sm`, where the row has no width for it.
+
 The dates are relative ("hace 2 días") through `Intl.RelativeTimeFormat`, with the
 exact timestamp as the element's `title`: a history is read for how recent an entry
 is, not for which Tuesday it landed on, and the native formatter means no phrasing
@@ -257,6 +266,36 @@ and skipped without aborting the file, and two rows for one SKU are refused: the
 second would be computed from a stock the first has already moved, which is exactly
 how the ledger and the catalogue would end up disagreeing. `dryRun` (the default)
 runs the whole loop and reports what it would do, with the writes skipped.
+
+Both ends of that path are in the inventory's header: "Exportar CSV" for any role,
+"Importar CSV" for `admin` alone, the same split the rest of the catalogue keeps. On a
+phone they shrink to their icon, because three labelled buttons do not fit beside the
+title.
+
+The export goes through `fetch` and a `Blob` rather than a link to the URL: a plain
+`<a href>` cannot carry the Bearer token, so `apiDownload` requests the file, names it
+from the `Content-Disposition` the API sends, and clicks a link it then throws away.
+That header is not exposed to cross-origin JavaScript by default, which is why the
+backend's `cors()` now lists it — otherwise the browser hides it and the file has to
+be named by the client, in a second place that can drift from the first. The export
+sends the filters that are on screen, minus the pagination, through the same
+`toQuery` the list uses.
+
+`ImportDialog` never writes on its own. Picking a file reads it with the native
+`file.text()` and asks the API what it *would* do; changing between "Reemplazar" and
+"Sumar" asks again; only "Importar" repeats the request with `dryRun=false`. It is one
+mutation for both steps rather than two, because it is one request — the result
+carries the flag back, so the dialog knows which of the two it is showing. The report
+is rendered from a `useDeferredValue` copy with its figures in a `useMemo`, so a
+hundred-row error list paints in the background instead of locking the dialog, and the
+table dims while the deferred value catches up. The errors keep the wording the API
+sends, naming the column that failed: they are read against the spreadsheet, where
+that is the only name that helps. Only the refusals about the file as a whole are
+translated.
+
+A real import invalidates more than a movement does: the list, every product sheet,
+the facets — an import can introduce a category the filters must offer at once — the
+ledger, and the panel's figures.
 
 ## Seed data
 
@@ -311,8 +350,8 @@ the present can be charted, never a trend.
 
 Both are single-series and monochrome. With one series there is no identity to
 encode, so bar length and curve height carry the meaning and colour carries none;
-amber and the accent stay reserved for stock status, where they already mean
-something. Chart colours are the raw theme tokens (`--fg`, `--border`, `--surface`)
+amber and the accent stay reserved for stock status, and the ledger's three tints for
+the movement type, where they already mean something. Chart colours are the raw theme tokens (`--fg`, `--border`, `--surface`)
 passed as SVG attributes, so the light/dark toggle repaints the charts with no
 second palette to maintain.
 
