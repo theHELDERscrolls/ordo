@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { useAuth } from '@/core/auth/use-auth';
+import { Page, PageHeader } from '@/shared/ui/Page';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 /** Account-level options gathered in one calm place, with log out set apart at the bottom. */
@@ -11,11 +12,8 @@ export function SettingsPage() {
   const { business, logout } = auth;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="font-display text-2xl font-semibold tracking-tight">Ajustes</h1>
-      <p className="mt-1 text-sm text-fg-muted transition-colors">
-        Preferencias de la aplicación y tu negocio.
-      </p>
+    <Page width="narrow">
+      <PageHeader title="Ajustes" description="Preferencias de la aplicación y tu negocio." />
 
       <div className="mt-8 divide-y divide-border">
         <Row title="Tema" hint="Alterna entre claro y oscuro.">
@@ -50,7 +48,7 @@ export function SettingsPage() {
           Cerrar sesión
         </button>
       </div>
-    </div>
+    </Page>
   );
 }
 

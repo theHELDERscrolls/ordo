@@ -5,6 +5,7 @@ import { useDashboardStats } from './useDashboardStats';
 import { useInventoryBreakdown } from './useInventoryBreakdown';
 import { useAuth } from '@/core/auth/use-auth';
 import { money } from '@/shared/format';
+import { Page, PageHeader } from '@/shared/ui/Page';
 import { StatCard } from '@/shared/ui/StatCard';
 
 const InventoryCharts = lazy(() => import('./charts/InventoryCharts'));
@@ -28,11 +29,8 @@ export function DashboardPage() {
   const figure = (value: string) => (data ? value : null);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="font-display text-2xl font-semibold tracking-tight">Panel</h1>
-      <p className="mt-1 text-sm text-fg-muted transition-colors">
-        El estado de tu inventario ahora mismo.
-      </p>
+    <Page width="medium">
+      <PageHeader title="Panel" description="El estado de tu inventario ahora mismo." />
 
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
@@ -99,6 +97,6 @@ export function DashboardPage() {
           )}
         </p>
       )}
-    </div>
+    </Page>
   );
 }

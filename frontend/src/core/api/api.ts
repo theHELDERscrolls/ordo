@@ -1,6 +1,19 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 /**
+ * A set of filters as the query string the API understands, skipping whatever is
+ * unset so an untouched filter does not travel as `?category=`. Shared by the two
+ * lists and by the CSV export, which has to ask for exactly what the list shows.
+ */
+export function toQuery(filters: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== '') params.set(key, String(value));
+  }
+  return params.toString();
+}
+
+/**
  * Thin wrapper over `fetch`: sets the JSON headers, attaches the Bearer token when
  * given, and turns a non-2xx response into a thrown Error carrying the server's
  * message. Native fetch plus a few lines covers what the app needs from an HTTP

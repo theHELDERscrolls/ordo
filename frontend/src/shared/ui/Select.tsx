@@ -1,6 +1,8 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { fieldClasses } from './field-styles';
+
 export type SelectOption = { value: string; label: string };
 
 type SelectProps = {
@@ -45,7 +47,7 @@ export function Select({ value, onChange, options, ariaLabel, className = '' }: 
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-surface py-2 pl-3 pr-2.5 text-sm outline-none transition-colors hover:border-fg focus:border-fg"
+        className={`${fieldClasses()} flex items-center justify-between gap-2 pr-2.5 hover:border-fg`}
       >
         <span className="truncate">{selected?.label ?? ''}</span>
         <ChevronDown
