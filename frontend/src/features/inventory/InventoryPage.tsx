@@ -1,14 +1,17 @@
 import { stockStatusSchema, type StockStatus } from '@ordo/shared';
-import { Plus, Search } from 'lucide-react';
+import { Download, Plus, Search, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { ImportDialog } from './ImportDialog';
 import { ProductDetailDialog } from './ProductDetailDialog';
 import { useFacets } from './useFacets';
+import { useExportProducts } from './useProductCsv';
 import { useProducts, type ProductFilters } from './useProducts';
 import { useAuth } from '@/core/auth/use-auth';
 import { useDebounce } from '@/core/hooks/use-debounce';
 import { money } from '@/shared/format';
+import { Pagination } from '@/shared/ui/Pagination';
 import { Select } from '@/shared/ui/Select';
 import { StockBadge } from '@/shared/ui/StockBadge';
 import { buttonClasses } from '@/shared/ui/button-styles';
@@ -77,6 +80,10 @@ export function InventoryPage() {
     else updateParams((next) => next.delete('product'), { replace: true });
   };
 
+  // Local state and not the URL: half an import is nothing to link to.
+  const [importing, setImporting] = useState(false);
+  const exportCsv = useExportProducts();
+
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [supplier, setSupplier] = useState('');
@@ -110,9 +117,6 @@ export function InventoryPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
-  const start = total === 0 ? 0 : (page - 1) * LIMIT + 1;
-  const end = Math.min(page * LIMIT, total);
   const categories = facets?.categories ?? [];
   const suppliers = facets?.suppliers ?? [];
   const hasFilters =
@@ -128,7 +132,9 @@ export function InventoryPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-start justify-between gap-4">
+      {/* Wraps rather than overflows: on the narrowest phones the title and three
+          icons run out of line, and the actions drop below instead of pushing out. */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">
             Inventario
@@ -137,16 +143,51 @@ export function InventoryPage() {
             Gestiona tu catálogo y los niveles de stock.
           </p>
         </div>
-        {isAdmin && (
-          <Link
-            to="/inventory/new"
-            className={`shrink-0 ${buttonClasses('primary')}`}
+        {/* The CSV actions keep their label from `sm` up and shrink to their icon on a
+            phone, where three labelled buttons would not fit beside the title. */}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            title="Exportar CSV"
+            aria-label="Exportar CSV"
+            disabled={exportCsv.isPending}
+            onClick={() => exportCsv.mutate(filters)}
+            className={buttonClasses('secondary')}
           >
-            <Plus size={16} strokeWidth={2} />
-            Nuevo producto
-          </Link>
-        )}
+            <Download size={16} strokeWidth={2} />
+            <span className="hidden sm:inline">Exportar CSV</span>
+          </button>
+          {isAdmin && (
+            <>
+              <button
+                type="button"
+                title="Importar CSV"
+                aria-label="Importar CSV"
+                onClick={() => setImporting(true)}
+                className={buttonClasses('secondary')}
+              >
+                <Upload size={16} strokeWidth={2} />
+                <span className="hidden sm:inline">Importar CSV</span>
+              </button>
+              <Link
+                to="/inventory/new"
+                title="Nuevo producto"
+                aria-label="Nuevo producto"
+                className={buttonClasses('primary')}
+              >
+                <Plus size={16} strokeWidth={2} />
+                <span className="hidden sm:inline">Nuevo producto</span>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
+
+      {exportCsv.isError && (
+        <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+          No se pudo exportar el CSV: {(exportCsv.error as Error).message}
+        </p>
+      )}
 
       <div className="mt-8 space-y-3">
         <div className="relative">
@@ -367,36 +408,10 @@ export function InventoryPage() {
         )}
       </div>
 
-      {total > LIMIT && (
-        <div className="mt-6 flex items-center justify-between gap-4 text-sm text-fg-muted">
-          <span className="tabular-nums">
-            {start}–{end} de {total}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="rounded-md border border-border px-3 py-1.5 transition-colors hover:text-fg disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <span className="px-2 tabular-nums">
-              Página {page} de {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded-md border border-border px-3 py-1.5 transition-colors hover:text-fg disabled:opacity-40"
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
 
       <ProductDetailDialog productId={openProductId} onClose={closeProduct} />
+      <ImportDialog open={importing} onClose={() => setImporting(false)} />
     </div>
   );
 }
