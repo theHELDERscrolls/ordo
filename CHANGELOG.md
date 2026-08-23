@@ -7,6 +7,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-23
+
+First release. Ordo is deployed and in use: the catalogue, the stock movement
+ledger and the CSV path in and out of it, behind a login, on MongoDB Atlas,
+Render and Vercel.
+
 ### Added
 
 - npm workspaces monorepo (`shared`, `backend`, `frontend`) with a single root lockfile.
@@ -86,3 +92,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A fresh clone could not be seeded by following the README: `@ordo/shared` is consumed as a built package through its `exports`, its `dist` is not committed, and nothing builds it on install, so `npm run seed` died on `ERR_MODULE_NOT_FOUND` before reaching the database. The README now builds the contracts before seeding, and says why it is a once-per-clone step.
 - `CONTRIBUTING.md` still promised setup instructions "as the backend and frontend packages are added", both of which shipped months ago. It points at the README for them and states the checks CI runs and the CHANGELOG policy instead.
 - Building the frontend on its own from a clean tree failed with `Cannot find module '@ordo/shared'`. The dependency was declared on the solution file, where it is only a build order, and `tsconfig.app.json` — the project that actually holds the code importing it — was listed first, so it was typechecked before the declarations it reads existed. It now declares the reference itself. Nothing caught it because the root `npm run build` walks the workspaces in order and builds the contracts first; a host pointed at `frontend/` does not.
+
+[Unreleased]: https://github.com/theHELDERscrolls/ordo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/theHELDERscrolls/ordo/releases/tag/v1.0.0
