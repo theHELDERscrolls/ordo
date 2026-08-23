@@ -7,6 +7,11 @@
 
 <!-- What does this PR do and why? Brief context. -->
 
+## Changes
+
+<!-- Always fill this. List the concrete changes made, grouped where useful
+     (backend / frontend / shared / docs). One bullet per change. -->
+
 ## Type of change
 
 - [ ] Bug fix (`fix`)

@@ -1,0 +1,228 @@
+{
+  "info": {
+    "name": "Ordo API",
+    "description": "Ordo REST API. Set the `baseUrl` variable (defaults to local). Run Auth > Login first: it stores the JWT in the `token` collection variable, which every other request uses as a Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "productId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('Saved token to collection variable.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@tallerrodri.com\",\n  \"password\": \"ordo1234!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?search=&stockStatus=&category=&supplier=&sort=name&order=asc&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "search", "value": "", "description": "Matches name or SKU" },
+                { "key": "stockStatus", "value": "", "description": "in | low | out" },
+                { "key": "category", "value": "" },
+                { "key": "supplier", "value": "" },
+                { "key": "sort", "value": "name", "description": "name | stock | salePrice | createdAt" },
+                { "key": "order", "value": "asc", "description": "asc | desc" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Facets",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/products/facets", "host": ["{{baseUrl}}"], "path": ["products", "facets"] }
+          }
+        },
+        {
+          "name": "Export CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/export.csv?search=&stockStatus=&category=&supplier=&sort=name&order=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "export.csv"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "stockStatus", "value": "" },
+                { "key": "category", "value": "" },
+                { "key": "supplier", "value": "" },
+                { "key": "sort", "value": "name" },
+                { "key": "order", "value": "asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Import CSV (dry run)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "text/csv" }],
+            "body": {
+              "mode": "raw",
+              "raw": "sku;name;category;supplier;unit;stock;minStock;costPrice;salePrice;description\nACE-001;Aceite motor 5W-30 5L;Aceites y lubricantes;Castrol;unidad;25;10;22,8;38;\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/import?dryRun=true&quantityMode=set",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "import"],
+              "query": [
+                { "key": "dryRun", "value": "true" },
+                { "key": "quantityMode", "value": "set" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cable USB-C\",\n  \"sku\": \"A-100\",\n  \"unit\": \"unit\",\n  \"category\": \"Accesorios\",\n  \"supplier\": \"DistTech\",\n  \"stock\": 3,\n  \"minStock\": 5,\n  \"costPrice\": 10,\n  \"salePrice\": 20\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/products", "host": ["{{baseUrl}}"], "path": ["products"] }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"stock\": 12,\n  \"salePrice\": 18\n}" },
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movements",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/movements?productId=&type=&from=&to=&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements"],
+              "query": [
+                { "key": "productId", "value": "", "description": "One product's own history" },
+                { "key": "type", "value": "", "description": "in | out | adjust" },
+                { "key": "from", "value": "", "description": "ISO date, inclusive" },
+                { "key": "to", "value": "", "description": "ISO date, inclusive; a bare date covers the whole day" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"type\": \"out\",\n  \"quantity\": 1,\n  \"reason\": \"Venta en mostrador\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["dashboard", "stats"] }
+          }
+        },
+        {
+          "name": "Inventory breakdown",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/inventory-breakdown", "host": ["{{baseUrl}}"], "path": ["dashboard", "inventory-breakdown"] }
+          }
+        }
+      ]
+    }
+  ]
+}

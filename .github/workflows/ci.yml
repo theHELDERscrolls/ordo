@@ -25,10 +25,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Base pipeline. There is no code or dependencies to build yet.
-      # The backend and frontend jobs (install, lint, typecheck, test, build)
-      # will be added here once their respective package.json files exist.
-      - name: Pipeline status
-        run: |
-          echo "Base CI pipeline is operational."
-          echo "Pending: add backend and frontend jobs once they exist."
+      # Reads the root package.json's engines.node, so the version is declared
+      # once and Render, Vercel and CI cannot drift apart.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      # One install at the root covers all workspaces (single lockfile).
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test

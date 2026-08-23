@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* Map our semantic tokens into Tailwind so utilities like bg-surface, text-fg,
+   border-border, bg-accent are generated. `inline` keeps them referencing the
+   variables below, so the light/dark swap and the per-tenant accent both work. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+
+  /* The frame every screen sits in: the gutter it keeps from the viewport edge and
+     the room above and below its content. `Page` is the only place that applies
+     them, so the whole app's margins move from these two lines. */
+  --spacing-page-x: 1.5rem;
+  --spacing-page-y: 2.5rem;
+}
+
+/* Neutral layers. These are Ordo's identity, shared by every tenant. */
+:root {
+  --bg: #ffffff;
+  --surface: #fafafa;
+  --surface-2: #f0f0f0;
+  --fg: #0a0a0a;
+  --fg-muted: #6b7280;
+  --border: #e6e6e6;
+  /* Default accent is monochrome; a tenant overrides --accent at runtime. */
+  --accent: #0a0a0a;
+  --accent-fg: #ffffff;
+}
+
+/* The same layers inverted. Toggled by the `.dark` class on <html>. */
+.dark {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+  --fg: #fafafa;
+  --fg-muted: #9ca3af;
+  --border: #262626;
+  --accent: #fafafa;
+  --accent-fg: #ffffff;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Slim, theme-aware scrollbar for scrollable menus (dropdowns), so they don't show
+   the heavy native one. Uses the neutral tokens, so it follows the light/dark swap. */
+.scrollbar-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scrollbar-slim::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+}
