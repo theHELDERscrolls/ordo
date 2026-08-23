@@ -111,6 +111,17 @@ npm run build
 npm run test
 ```
 
+## Deployment
+
+The API runs on Render, the web client on Vercel and the database on MongoDB
+Atlas, all on their free tiers. The [deployment runbook](./docs/deployment.md)
+covers how each host is configured and in what order.
+
+One consequence of the free tier is worth knowing before reporting it as a bug:
+a Render service spins down after 15 minutes without traffic, so the first
+request after a quiet spell wakes it and can take about a minute. Logging in
+after that is immediate.
+
 ## Git workflow
 
 A simplified *git-flow* is used, with two protected branches:

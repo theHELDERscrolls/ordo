@@ -18,6 +18,8 @@ the API reference. Files are not created empty ahead of need.
   - [Dashboard panel](./domains/dashboard.md)
 - [API reference](./api/README.md) — every HTTP endpoint with request/response
   JSON examples, plus the OpenAPI contract and a Postman collection.
+- [Deployment](./deployment.md) — the runbook for MongoDB Atlas, Render and
+  Vercel: what each host is configured with, in which order, and why.
 - [Specs](./specs/) — what is designed but not yet built. A spec is written before
   the work starts, and once shipped the architecture, domain and API docs carry the
   truth; the spec stays as the record of why it was built that way.
