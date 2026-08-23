@@ -18,4 +18,6 @@ export const env = {
   port: Number(process.env.PORT) || 3000,
   mongodbUri: required('MONGODB_URI'),
   jwtSecret: required('JWT_SECRET'),
+  // Unset means any origin, which is what local development and a REST client want.
+  corsOrigin: process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? '*',
 };
