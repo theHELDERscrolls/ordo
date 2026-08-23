@@ -14,10 +14,19 @@ This project is developed as a **Master's Thesis (TFM)**.
 
 ## Project status
 
-**In development.** The catalogue works end to end: an npm-workspaces monorepo, a
+**Released and deployed** ([v1.0.0](./CHANGELOG.md)). An npm-workspaces monorepo, a
 shared Zod contract, a login flow with JWT-protected routes and a white-label shell,
 the product inventory with its search, filters and dashboard, an append-only stock
-movement ledger, and the CSV path in and out of the catalogue. Deployment is next.
+movement ledger, and the CSV path in and out of the catalogue.
+
+| | |
+| --- | --- |
+| Web | https://ordo-neon.vercel.app |
+| API | https://ordo-api-8lmi.onrender.com |
+
+Both run on free tiers, so the API spins down after 15 minutes without traffic and
+the first request after a quiet spell takes about a minute to wake it. Logging in
+after that is immediate.
 
 ## Tech stack
 
@@ -114,13 +123,9 @@ npm run test
 ## Deployment
 
 The API runs on Render, the web client on Vercel and the database on MongoDB
-Atlas, all on their free tiers. The [deployment runbook](./docs/deployment.md)
-covers how each host is configured and in what order.
-
-One consequence of the free tier is worth knowing before reporting it as a bug:
-a Render service spins down after 15 minutes without traffic, so the first
-request after a quiet spell wakes it and can take about a minute. Logging in
-after that is immediate.
+Atlas, all on their free tiers, and all three build from `main`. The
+[deployment runbook](./docs/deployment.md) covers how each host is configured,
+in what order, and the failures worth knowing about before hitting them.
 
 ## Git workflow
 

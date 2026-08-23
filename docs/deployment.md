@@ -50,10 +50,14 @@ New **Web Service**, connected to this repository.
 | ----------------- | ------------------------------------------------- |
 | Root Directory    | *(empty: the repo root, where the lockfile is)*   |
 | Runtime           | Node                                              |
-| Branch            | `develop` while deploying, `main` once released   |
+| Branch            | `main`                                            |
 | Build Command     | `npm ci --include=dev && npm run build -w @ordo/backend` |
 | Start Command     | `npm run start -w @ordo/backend`                  |
 | Health Check Path | `/health`                                         |
+
+The service URL is not the service name: if the name is taken across Render, a
+suffix is appended and `ordo-api` becomes `ordo-api-8lmi`. The real one is on the
+last line of the deploy log, after "Available at your primary URL".
 
 `--include=dev` is not optional: Render sets `NODE_ENV=production`, and npm then
 skips `devDependencies`, TypeScript among them. Without it the build fails with
@@ -89,14 +93,24 @@ is destructive, which is why it takes the URI inline instead of reading `.env`.
 
 New **Project**, imported from this repository.
 
-| Setting          | Value                                            |
-| ---------------- | ------------------------------------------------ |
-| Root Directory   | `frontend`                                       |
-| Framework Preset | Vite *(detected)*                                |
-| Build / Install  | *(the defaults: `npm run build`, `npm install`)* |
+| Setting           | Value                                            |
+| ----------------- | ------------------------------------------------ |
+| Root Directory    | `frontend`, with "Include files outside the root directory" enabled |
+| Framework Preset  | Vite                                             |
+| Production Branch | `main`                                           |
+| Build / Install   | *(the defaults: `npm run build`, `npm install`)* |
 
 Vercel installs from the workspace root on its own, because that is where the
-lockfile is, so the default commands are the right ones.
+lockfile is, so the default commands are the right ones. The "include files
+outside the root directory" toggle is what puts `shared/` and that lockfile within
+reach of the build.
+
+The root directory picker on the import screen lists the folders of the
+repository's **default branch**, not of the branch being deployed. While the
+project's work lived on `develop` and `main` held only the community files, the
+picker offered nothing to choose and the setting had to be typed by hand
+afterwards, in Settings, where it is a plain text field. Deploying from `main`
+after a release, which is what this document describes, does not run into it.
 
 One environment variable, `VITE_API_URL`, set to the Render URL with no trailing
 slash. Vite inlines it into the bundle at build time rather than reading it at
@@ -138,7 +152,14 @@ answer through.
 
 ## Releasing
 
-Render and Vercel both build the branch they are pointed at. While deploying they
-follow `develop`; once the flow is verified end to end they are moved to `main`,
-and from then on a release is the `develop` to `main` merge, with the version bump
-and the tag described in the [contributing guide](../CONTRIBUTING.md).
+Render and Vercel both build `main`, so a release is what deploys: the `develop` to
+`main` merge, with the version bumped in the four manifests and in
+`docs/api/openapi.yaml`, `[Unreleased]` sealed into its version section, and the
+`vX.Y.Z` tag pushed. The [contributing guide](../CONTRIBUTING.md) has the flow.
+
+The workspace packages are private and never published, but their versions move
+with the root's so the four manifests tell the same story. `backend` and `frontend`
+depend on `@ordo/shared` by range, so bumping it means bumping those ranges and
+refreshing the lockfile in the same commit: a range that no longer matches sends
+`npm ci` to the public registry looking for a package that is not there, and the
+build fails on both hosts.
