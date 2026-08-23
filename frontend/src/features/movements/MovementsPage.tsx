@@ -1,16 +1,22 @@
 import { movementTypeSchema, type MovementType } from '@ordo/shared';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { MovementBadge } from './MovementBadge';
 import { MovementFormDialog } from './MovementFormDialog';
 import { ProductPicker } from './ProductPicker';
 import { signedQuantity } from './movement-format';
 import { useMovements, type MovementFilters } from './useMovements';
+import { usePage } from '@/core/hooks/use-page';
+import { useUrlParams } from '@/core/hooks/use-url-params';
 import { dateTime, relativeTime } from '@/shared/format';
+import { FilterChips } from '@/shared/ui/FilterChips';
+import { ListState } from '@/shared/ui/ListState';
+import { Page, PageHeader } from '@/shared/ui/Page';
 import { Pagination } from '@/shared/ui/Pagination';
 import { buttonClasses } from '@/shared/ui/button-styles';
+import { fieldClasses } from '@/shared/ui/field-styles';
+import { tableHeadClasses } from '@/shared/ui/table-styles';
 
 const LIMIT = 20;
 
@@ -21,8 +27,7 @@ const typeChips: { label: string; value: MovementType | undefined }[] = [
   { label: 'Ajustes', value: 'adjust' },
 ];
 
-const dateInputClasses =
-  'w-full rounded-md border border-border bg-surface px-3 py-2 text-sm transition-colors outline-none focus:border-fg sm:w-40';
+const dateClasses = `${fieldClasses()} sm:w-40`;
 
 /**
  * The stock ledger: every recorded change, newest first, filtered and paginated.
@@ -35,37 +40,18 @@ export function MovementsPage() {
   // In the URL rather than in state, so the product sheet can link straight into its
   // own history and a filtered view is shareable. Parsing the type through the shared
   // enum makes a hand-edited value fall back to "all" instead of reaching the API.
-  const [searchParams, setSearchParams] = useSearchParams();
-  const parsedType = movementTypeSchema.safeParse(searchParams.get('type'));
+  const [params, setParams] = useUrlParams();
+  const parsedType = movementTypeSchema.safeParse(params.get('type'));
   const type = parsedType.success ? parsedType.data : undefined;
-  const productId = searchParams.get('productId') ?? '';
-  const from = searchParams.get('from') ?? '';
-  const to = searchParams.get('to') ?? '';
+  const productId = params.get('productId') ?? '';
+  const from = params.get('from') ?? '';
+  const to = params.get('to') ?? '';
 
-  // Through the router's updater form, so each change reads the params as they are at
-  // that moment and one update cannot overwrite another made in the same tick.
-  const setParam = (key: string, value: string | undefined) =>
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        if (value) next.set(key, value);
-        else next.delete(key);
-        return next;
-      },
-      { replace: true },
-    );
+  const setFilter = (changes: Record<string, string | undefined>) =>
+    setParams(changes, { replace: true });
 
-  const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
-
-  // Back to page one whenever the filters change. Adjusting state during render is
-  // React's documented pattern here, and avoids an effect and its extra render.
-  const filterKey = `${productId}|${type ?? ''}|${from}|${to}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (filterKey !== prevFilterKey) {
-    setPrevFilterKey(filterKey);
-    setPage(1);
-  }
+  const [page, setPage] = usePage(`${productId}|${type ?? ''}|${from}|${to}`);
 
   const filters: MovementFilters = {
     productId: productId || undefined,
@@ -81,19 +67,15 @@ export function MovementsPage() {
   const total = data?.total ?? 0;
   const hasFilters = Boolean(productId || type || from || to);
 
-  function clearFilters() {
-    setSearchParams({}, { replace: true });
-  }
+  const clearFilters = () =>
+    setFilter({ productId: undefined, type: undefined, from: undefined, to: undefined });
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Movimientos</h1>
-          <p className="mt-1 text-sm text-fg-muted transition-colors">
-            El historial de entradas, salidas y ajustes de tu stock.
-          </p>
-        </div>
+    <Page>
+      <PageHeader
+        title="Movimientos"
+        description="El historial de entradas, salidas y ajustes de tu stock."
+      >
         {/* Icon alone on a phone: the label does not fit beside the title, and a button
             that overflows the header is worse than one that has to be recognised. */}
         <button
@@ -101,89 +83,68 @@ export function MovementsPage() {
           title="Registrar movimiento"
           aria-label="Registrar movimiento"
           onClick={() => setFormOpen(true)}
-          className={`shrink-0 ${buttonClasses('primary')}`}
+          className={buttonClasses('primary')}
         >
           <Plus size={16} strokeWidth={2} />
           <span className="hidden sm:inline">Registrar movimiento</span>
         </button>
-      </div>
+      </PageHeader>
 
       <div className="mt-8 space-y-3">
         <ProductPicker
           value={productId}
-          onChange={(id) => setParam('productId', id)}
+          onChange={(id) => setFilter({ productId: id })}
           placeholder="Todos los productos"
           clearable
         />
         <div className="flex flex-wrap items-center gap-2">
-          {typeChips.map((chip) => {
-            const active = type === chip.value;
-            return (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => setParam('type', chip.value)}
-                className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                  active ? 'border-fg bg-fg text-bg' : 'border-border text-fg-muted hover:text-fg'
-                }`}
-              >
-                {chip.label}
-              </button>
-            );
-          })}
+          <FilterChips
+            options={typeChips}
+            value={type}
+            onChange={(value) => setFilter({ type: value })}
+          />
           <input
             type="date"
             value={from}
             max={to || undefined}
-            onChange={(e) => setParam('from', e.target.value)}
+            onChange={(e) => setFilter({ from: e.target.value })}
             aria-label="Desde"
-            className={`${dateInputClasses} sm:ml-auto`}
+            className={`${dateClasses} sm:ml-auto`}
           />
           <input
             type="date"
             value={to}
             min={from || undefined}
-            onChange={(e) => setParam('to', e.target.value)}
+            onChange={(e) => setFilter({ to: e.target.value })}
             aria-label="Hasta"
-            className={dateInputClasses}
+            className={dateClasses}
           />
         </div>
       </div>
 
       <div className="mt-6">
         {isLoading ? (
-          <p className="py-16 text-center text-sm text-fg-muted">Cargando movimientos…</p>
+          <ListState muted title="Cargando movimientos…" />
         ) : isError ? (
-          <p className="py-16 text-center text-sm text-fg-muted">
-            No se pudieron cargar los movimientos: {(error as Error).message}
-          </p>
+          <ListState
+            muted
+            title={`No se pudieron cargar los movimientos: ${(error as Error).message}`}
+          />
         ) : items.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-sm font-medium">
-              {hasFilters
-                ? 'Ningún movimiento coincide con los filtros'
-                : 'Aún no hay movimientos'}
-            </p>
-            {hasFilters ? (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-3 text-sm text-fg-muted underline transition-colors hover:text-fg"
-              >
-                Limpiar filtros
-              </button>
-            ) : (
-              <p className="mt-1 text-sm text-fg-muted">
-                Cada entrada, salida o ajuste de stock aparecerá aquí.
-              </p>
-            )}
-          </div>
+          hasFilters ? (
+            <ListState title="Ningún movimiento coincide con los filtros" onClear={clearFilters} />
+          ) : (
+            <ListState
+              title="Aún no hay movimientos"
+              hint="Cada entrada, salida o ajuste de stock aparecerá aquí."
+            />
+          )
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="hidden w-full md:table">
                 <thead>
-                  <tr className="border-b border-border text-left text-xs tracking-wide text-fg-muted uppercase">
+                  <tr className={tableHeadClasses}>
                     <th className="py-2.5 pr-4 pl-3 font-medium">Producto</th>
                     <th className="py-2.5 pr-4 font-medium">Tipo</th>
                     <th className="py-2.5 pr-4 text-right font-medium">Cantidad</th>
@@ -290,6 +251,6 @@ export function MovementsPage() {
         onClose={() => setFormOpen(false)}
         productId={productId}
       />
-    </div>
+    </Page>
   );
 }

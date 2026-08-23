@@ -1,5 +1,7 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 
+import { fieldClasses } from './field-styles';
+
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   error?: string;
@@ -20,11 +22,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         ref={ref}
         aria-invalid={error ? true : undefined}
         {...props}
-        className={`mt-1.5 w-full rounded-md border bg-surface px-3 py-2 text-sm outline-none transition-colors ${
-          error
-            ? 'border-red-500 focus:border-red-500'
-            : 'border-border focus:border-fg'
-        }`}
+        className={`mt-1.5 ${fieldClasses(Boolean(error))}`}
       />
       <p
         className="mt-1 min-h-4 text-xs text-red-600 transition-colors dark:text-red-400"

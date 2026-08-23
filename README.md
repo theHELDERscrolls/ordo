@@ -47,13 +47,15 @@ ordo/
 ```
 
 See the [architecture guide](./docs/architecture.md) for how each package is
-organized and how the pieces fit together.
+organized, and [docs/](./docs/README.md) for the domain guides and the API
+reference.
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js 20+ and npm.
+- Node.js 24.x and npm. The version is declared as `engines.node` in the
+  manifests, and CI, Render and Vercel all read it from there.
 - A MongoDB instance. For local development you can run one with Docker:
 
   ```bash
@@ -70,9 +72,15 @@ npm install
 cp backend/.env.example backend/.env     # set JWT_SECRET to a long random string
 cp frontend/.env.example frontend/.env
 
-# 3. Seed the demo data from backend/seed/*.csv (wipes the development database)
+# 3. Build the shared contracts, which backend and frontend import as a package
+npm run build -w @ordo/shared
+
+# 4. Seed the demo data from backend/seed/*.csv (wipes the development database)
 npm run seed -w @ordo/backend
 ```
+
+Step 3 is only needed once per clone (and after changing `shared/`): `@ordo/shared`
+is consumed as a built package, and its output is not committed.
 
 The seed reads four CSV files in `backend/seed/` — business, users, products and
 stock movements — so the demo catalogue is edited in a spreadsheet, not in code.
@@ -84,7 +92,12 @@ npm run dev -w @ordo/backend     # API on http://localhost:3000
 npm run dev -w @ordo/frontend    # web client on http://localhost:5173
 ```
 
-Demo credentials created by the seed: `admin@tallerrodri.com` / `ordo1234!`.
+Demo credentials created by the seed, both with the password `ordo1234!`:
+
+| User | Role | What it can do |
+| ---- | ---- | -------------- |
+| `admin@tallerrodri.com` | `admin` | Everything: the catalogue, the CSV import, the ledger |
+| `empleado@tallerrodri.com` | `employee` | Browse the catalogue, export a CSV, record movements |
 
 ### Workspace scripts
 

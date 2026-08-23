@@ -15,6 +15,12 @@
   --color-accent-fg: var(--accent-fg);
 
   --font-display: 'Space Grotesk', system-ui, sans-serif;
+
+  /* The frame every screen sits in: the gutter it keeps from the viewport edge and
+     the room above and below its content. `Page` is the only place that applies
+     them, so the whole app's margins move from these two lines. */
+  --spacing-page-x: 1.5rem;
+  --spacing-page-y: 2.5rem;
 }
 
 /* Neutral layers. These are Ordo's identity, shared by every tenant. */

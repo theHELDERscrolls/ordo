@@ -10,7 +10,8 @@ List products, filtered, sorted and paginated.
 
 Query params: `search` (name/SKU), `stockStatus` (`in`|`low`|`out`), `category`,
 `supplier`, `sort` (`name`|`stock`|`salePrice`|`createdAt`), `order` (`asc`|`desc`),
-`page`, `limit`.
+`page` (from 1), `limit` (20 by default, 100 at most). `page` and `limit` are
+clamped into range rather than refused; an unknown `sort` falls back to `name`.
 
 Response `200`:
 

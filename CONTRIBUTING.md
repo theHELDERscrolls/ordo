@@ -49,8 +49,22 @@ Use lowercase, imperative mood, no trailing period. A scope is optional
 
 ## Local development
 
-Setup instructions will be documented in the [README](README.md) as the backend
-and frontend packages are added.
+Prerequisites, environment variables, seeding and the dev runners are in the
+[README](README.md). From the repo root, every check CI runs:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm run test
+```
+
+Append `-w @ordo/<backend|frontend|shared>` to target a single package.
+
+Every change that is worth a line in the release notes goes under
+`[Unreleased]` in the [CHANGELOG](CHANGELOG.md). The version is not bumped on
+`develop`: sealing `[Unreleased]` into a version and tagging it happen only when
+`develop` is merged into `main`.
 
 ## Security
 

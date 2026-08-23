@@ -13,6 +13,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useProduct, useSaveProduct } from './useProductMutations';
 import { useAuth } from '@/core/auth/use-auth';
 import { Button } from '@/shared/ui/Button';
+import { Page, PageHeader } from '@/shared/ui/Page';
 import { TextField } from '@/shared/ui/TextField';
 import { buttonClasses } from '@/shared/ui/button-styles';
 
@@ -101,17 +102,15 @@ export function ProductFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <Page width="narrow">
       <Link
         to="/inventory"
-        className="inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg"
+        className="mb-3 inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg"
       >
         <ArrowLeft size={16} strokeWidth={1.75} />
         Volver al inventario
       </Link>
-      <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">
-        {isEdit ? 'Editar producto' : 'Nuevo producto'}
-      </h1>
+      <PageHeader title={isEdit ? 'Editar producto' : 'Nuevo producto'} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-1">
         <div className="grid gap-x-5 sm:grid-cols-2">
@@ -200,6 +199,6 @@ export function ProductFormPage() {
           </Link>
         </div>
       </form>
-    </div>
+    </Page>
   );
 }

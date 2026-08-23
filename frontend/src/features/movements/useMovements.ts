@@ -1,7 +1,7 @@
 import type { MovementListResponse, MovementType } from '@ordo/shared';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { apiFetch } from '@/core/api/api';
+import { apiFetch, toQuery } from '@/core/api/api';
 import { useToken } from '@/core/auth/use-token';
 
 export type MovementFilters = {
@@ -21,12 +21,7 @@ export type MovementFilters = {
  */
 export function useMovements(filters: MovementFilters) {
   const token = useToken();
-
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(filters)) {
-    if (value !== undefined && value !== '') params.set(key, String(value));
-  }
-  const query = params.toString();
+  const query = toQuery(filters);
 
   return useQuery({
     queryKey: ['movements', filters],

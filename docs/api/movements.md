@@ -18,7 +18,8 @@ The business's history, newest first, paginated.
 
 Query params: `productId` (one product's own history), `type` (`in`|`out`|`adjust`),
 `from` and `to` (ISO dates, both inclusive — a bare `YYYY-MM-DD` in `to` covers that
-whole day), `page`, `limit` (max 100).
+whole day), `page` (from 1), `limit` (20 by default, 100 at most). Both are clamped
+into range rather than refused, and an unparseable date bound is ignored.
 
 The product's name and SKU and the author's name are resolved server-side, so a
 history table needs a single request.
@@ -43,7 +44,7 @@ Response `200`:
       "createdAt": "2026-08-19T09:14:02.118Z"
     }
   ],
-  "total": 219,
+  "total": 337,
   "page": 1,
   "limit": 20
 }

@@ -1,7 +1,8 @@
 # Architecture
 
-How Ordo is put together. This is a living document: it grows as features land,
-and a section is extracted into its own file once it outgrows this one.
+How Ordo is put together: the shape of the repository and of each package. What
+each domain does and why it does it that way lives in its own document, listed at
+the end.
 
 ## Monorepo
 
@@ -9,6 +10,7 @@ Ordo is an npm-workspaces monorepo with a single root lockfile:
 
 ```text
 ordo/
+├── .github/    CI, issue and PR templates, Dependabot
 ├── shared/     @ordo/shared  — Zod contracts shared by backend and frontend
 ├── backend/    @ordo/backend — REST API (Node + Express + TypeScript)
 ├── frontend/   @ordo/frontend — web client (React + TypeScript + Vite)
@@ -20,6 +22,10 @@ login request/response, roles). Both `backend` and `frontend` depend on it and
 are wired through TypeScript project references, so a change to a contract breaks
 compilation on both sides instead of drifting silently. Public shapes never
 include secrets such as `passwordHash`.
+
+The Node version is declared once, as `engines.node` in the three manifests. CI
+reads it from there (`node-version-file`) and Render and Vercel honour the same
+field, so the runtime cannot drift from the one the pipeline tests on.
 
 ## Backend
 
@@ -51,9 +57,9 @@ Organized into cross-cutting core, domain features, and shared UI:
 ```text
 frontend/src/
 ├── core/       cross-cutting concerns
-│   ├── api/        HTTP client
+│   ├── api/        HTTP client (apiFetch, apiDownload, toQuery)
 │   ├── auth/       session context, RequireAuth, useToken
-│   ├── hooks/      generic hooks (useDebounce)
+│   ├── hooks/      generic hooks (useDebounce, usePage, useUrlParams)
 │   └── theme/      light/dark theme hook
 ├── features/   screens grouped by domain
 │   ├── auth/       LoginPage
@@ -61,307 +67,51 @@ frontend/src/
 │   ├── inventory/  list, detail dialog, product form, CSV import/export, and hooks
 │   ├── movements/  the ledger page, its filters, the register dialog and its hooks
 │   └── settings/   theme, language, business, log out
-└── shared/ui/  AppLayout (the nav shell) + reusable components (Button, Select,
-                Modal, ConfirmDialog, Pagination, StockBadge, TextField, ThemeToggle)
+└── shared/     what any feature may use
+    ├── format.ts   money, dates, relative time
+    └── ui/         Page, AppLayout (the nav shell) and the reusable components
 ```
 
-The `@` path alias resolves to `src/`. Styling is Tailwind CSS v4 with semantic
-tokens defined in `index.css`: three neutral layers plus one accent, mapped via
-`@theme` so the light/dark swap and the per-tenant accent both work as CSS
-variables. The app is mobile-first.
+The `@` path alias resolves to `src/`.
 
-## Multi-tenant and white-label
+### Styling
 
-One deployment, one database; every tenant-scoped document carries a
-`businessId`. The tenant is resolved from the logged-in user's `businessId` (not
-from a URL or subdomain): the login page is generic Ordo, and the business brand
-(name, accent color, and a muted "by Ordo") is applied after login. There is no
-public signup. This keeps a single-business deployment identical to a multi-tenant
-one; multi-tenancy is extra credit, not a requirement.
+Tailwind CSS v4 with semantic tokens defined in `index.css` and mapped through
+`@theme`, so they exist as CSS variables and as utilities:
 
-## Authentication flow
-
-1. The client posts credentials to `POST /auth/login`.
-2. The backend validates the body with the shared `loginSchema`, looks up the
-   user, and verifies the password against the bcrypt hash. Unknown email and
-   wrong password return the same generic 401 so emails cannot be probed.
-3. On success it signs a JWT for the user id and returns the token plus the
-   resolved tenant context (user + business) so the frontend can theme itself.
-4. The client stores the token and sends it as a `Bearer` header. The
-   `requireAuth` middleware verifies it and populates `req.userId` for protected
-   routes such as `GET /auth/me`.
-
-## Inventory
-
-The Product domain is the app's core. A `Product` belongs to a business
-(`businessId`) and is identified within it by `sku` (compound unique index
-`businessId + sku`), which is the identity the CSV import upserts on. Key
-fields: `name`, `sku`, `category`, `supplier`, `unit`, `stock`, `minStock`
-(reorder point), `costPrice`, `salePrice`.
-
-`stockStatus` is derived, never stored: `out` when stock is 0, `low` when
-`0 < stock <= minStock`, otherwise `in`.
-
-The threshold lives in `product.status.ts` and nowhere else, because it is needed
-in two places that cannot share code by default: `stockStatusOf` decides the status
-of a document Mongoose has already loaded (the model's virtual, which drives the
-list badge), and `stockStatusExpr` is the same rule as a MongoDB expression, used
-both as the `$expr` behind the inventory's stock filter and as the `$cond` behind
-the panel's low/out counts. Two encodings of one rule is a drift risk, so
-`product.status.test.ts` evaluates the expressions in process against the predicate
-across a grid of stock/minStock pairs: it fails if the two ever disagree, or if a
-bucket stops being mutually exclusive.
-
-Access is role-aware and tenant-scoped. Every query is filtered by
-`getAccessibleBusinessIds(user)` (today the user's own business), so one tenant
-never sees another's products. Writes (`POST`/`PATCH`/`DELETE`) require the
-`admin` role; reads are open to `admin` and `employee`. The `loadUser` middleware
-attaches the user (id, businessId, role) after `requireAuth`.
-
-The list is paginated and filterable (search, stock status, category, supplier,
-sort with direction); a `GET /products/facets` endpoint returns the distinct
-categories and suppliers so the UI fills its filters independently of the current
-page.
-
-On the client, a row opens the product's read-only sheet rather than the edit form,
-and it does so for any role: an `employee` can inspect a product but sees no write
-actions, mirroring the API's split. Editing and deleting hang off that sheet, so
-both writes are a deliberate second step. The open product lives in the URL
-(`?product=<id>`) next to the stock filter, which makes a sheet linkable and lets
-the phone's back button close it. Editing stays a page rather than a second mode
-inside the sheet — ten fields in two columns need the room — but saving returns to
-the product's sheet instead of the bare list, so a change is seen where it was made.
-The sheet also ends in the product's last five movements, with a link into the rest,
-so the number at the top of it is explained where it is read.
-
-Modals are built on the native `<dialog>` (`shared/ui/Modal.tsx`). `showModal()`
-already gives the focus trap, Escape, the top layer and an inert, unscrollable
-background, so `Modal` only adds the shape — a sheet rising from the bottom edge on
-a phone, a centred panel from `sm` up — and `ConfirmDialog` composes on top of it.
-
-## Stock movements
-
-A `StockMovement` records one change to a product's stock: `businessId`,
-`productId`, `type` (`in`, `out` or `adjust`), a `quantity` that is always
-positive, the `resultingStock` it left behind, an optional `reason`, the `userId`
-who did it, and `createdAt`. The ledger is append-only, so a movement has a
-creation date and no update date, and a mistake is corrected with an opposing
-movement rather than an edit.
-
-`quantity` is unsigned because the sign lives in `type`; `resultingStock` is
-denormalised because without it the history cannot say what a movement left behind
-without replaying the whole ledger on every read. `Product.stock` stays a plain
-number on the product for the same reason in reverse: the list, the filters and the
-panel all query it directly, and an aggregation per product would pay for that on
-every screen. The ledger explains the number, it does not replace it.
-
-Two indexes, `{ businessId, createdAt: -1 }` and `{ productId, createdAt: -1 }`,
-cover the two ways it is read: the business's history newest first, and one
-product's own sheet.
-
-Every write that touches `stock` records its movement in the same request, so the
-two can never drift apart:
-
-| Trigger | Movement | Stock |
-|---|---|---|
-| `POST /movements` with `type: 'in'` | `in` | `$inc: +quantity` |
-| `POST /movements` with `type: 'out'` | `out` | `$inc: -quantity`, guarded by `stock: { $gte: quantity }` |
-| `POST /products` with `stock > 0` | `in`, reason "Stock inicial" | set by the create |
-| `PATCH /products/:id` that changes `stock` | `adjust`, quantity `abs(new - old)` | set by the patch |
-| CSV import, `quantityMode=set` | `adjust`, reason "Importación CSV" | the file's column |
-| CSV import, `quantityMode=add` | `in` of the increment, reason "Importación CSV" | current + the column |
-| `DELETE /products/:id` | none — the product's movements go with it | n/a |
-
-`recordMovement` in the model is the single place that writes one, and it takes
-`resultingStock` from the product as already saved rather than recomputing it.
-
-The exit guard is what makes a sale-like movement safe: the availability check and
-the decrement are one atomic `findOneAndUpdate`, so two concurrent exits cannot both
-pass the check and drive the stock negative. Nothing matching, when the product does
-exist, means insufficient stock — a `409`.
-
-`adjust` is never accepted from `POST /movements`. It exists so that a correction
-made in the product form still shows up in the history, and its `quantity` is the
-size of the correction, not the new stock. There is no update and no delete on a
-movement at all: a mistake is corrected with an opposing entry.
-
-On the client the ledger is its own section (`/movements`), a third entry in the nav
-beside the panel and the inventory. It reads like the inventory does, for the same
-reasons: the filters (product, type, date range) live in the URL rather than in
-component state, so the product sheet can link straight into one product's history
-and a filtered view is shareable; the type is parsed through the shared enum, so a
-hand-edited value falls back to "all" instead of reaching the API; and the table
-becomes a list of cards below `md`. There is no row to open — a movement has no
-detail beyond the row, and no edit behind it.
-
-The product filter is not a dropdown. The catalogue runs past what the list endpoint
-returns in one page, so the options cannot be loaded up front: `ProductPicker` is a
-search field that queries the API and holds the choice as an id, which is what makes
-the filter survive a reload and a shared URL. Registering a movement uses the same
-control, so the two places that name a product name it the same way.
-
-`useCreateMovement` invalidates the ledger, the inventory list, the product's own
-sheet and the panel's figures, because a movement changes the number all four read.
-The facets are left alone: a movement never introduces a category or a supplier.
-Only `in` and `out` are offered in the dialog, mirroring the API — an `adjust` is
-something the system writes, never something a client declares.
-
-Registering is the one write open to `employee`, and it is deliberate. Everywhere
-else the split holds — the catalogue, its prices and its reorder points are `admin` —
-but the person behind the counter is the one who actually moves the stock, and a shop
-where every sale waits for the owner to type it is a shop that stops recording sales.
-The ledger is safe in more hands than the catalogue precisely because it is
-append-only: an employee can add to the trail and cannot rewrite it, every entry
-carries who made it, and an exit still cannot drive the stock negative.
-
-`MovementBadge` is the second place after the stock badge where colour does work
-rather than decorate: an entry is green, an exit red and an adjustment blue, as a
-tenth-opacity tint with the text a step darker in light mode and a step lighter in
-dark. A ledger is scanned down a column for direction, which a word alone makes slow.
-The three are fixed hues and not the tenant accent, which is already "agotado" and
-which for a business with a green accent would paint every exit as an entry; amber is
-spoken for by "stock bajo" for the same reason. In the product sheet's recent list the
-label drops to `sr-only` below `sm`, where the row has no width for it.
-
-The dates are relative ("hace 2 días") through `Intl.RelativeTimeFormat`, with the
-exact timestamp as the element's `title`: a history is read for how recent an entry
-is, not for which Tuesday it landed on, and the native formatter means no phrasing
-table and no date library.
-
-The full design is in [spec 001](./specs/001-stock-movements-and-csv.md).
-
-## CSV
-
-`backend/src/lib/csv.ts` reads and writes CSV in about sixty lines and no
-dependency: `parseCsv` handles quoted fields, `""` as an escaped quote, delimiters
-and newlines inside quotes, `CRLF` or `LF`, the BOM Excel writes and blank lines;
-`toCsv` quotes only what would otherwise break a row apart. `csv.test.ts` covers
-each of those cases plus a `toCsv(parseCsv(x)) === x` round trip, because a parser
-that is subtly wrong on quoting corrupts data quietly.
-
-"CSV out of Excel" is not one format: Excel writes the list separator of the
-machine's locale, so the same spreadsheet arrives comma-separated in English and
-semicolon-separated in Spanish, where the comma is already holding the decimals
-(`22,8`). `parseCsv` therefore detects the delimiter from the header rather than
-assuming one, and `readProductRow` reads a comma decimal as a point; a number
-carrying both marks is ambiguous without a locale the file does not carry, so it is
-reported by line instead of guessed at. The export writes the Spanish convention
-(`spanishCsv`, plus the UTF-8 BOM without which Excel renders the accents as
-mojibake), so its file opens in columns on a double click and still round-trips.
-
-The catalogue's own file shape lives in `product.csv.ts`: the column list the export
-writes, and `readProductRow`, which maps a row onto product input. It carries only
-the cells the file actually filled, so a column that is missing or empty leaves that
-field alone instead of overwriting it with a zero — the same class of bug the
-partial update schema already had once. Nothing is coerced defensively: a `stock` of
-"doce" arrives as `NaN` and is rejected by validation with its line number, which is
-the report the user needs.
-
-`GET /products/export.csv` and `GET /products` share `buildProductFilter` and
-`buildProductSort`, so the export is exactly what the list is showing, minus the
-pagination. `POST /products/import` upserts on `(businessId, sku)` — the pair the
-unique index already enforces — reading the file's SKUs in a single query and
-matching the rows in memory. A row that fails validation is reported with its line
-and skipped without aborting the file, and two rows for one SKU are refused: the
-second would be computed from a stock the first has already moved, which is exactly
-how the ledger and the catalogue would end up disagreeing. `dryRun` (the default)
-runs the whole loop and reports what it would do, with the writes skipped.
-
-Both ends of that path are in the inventory's header: "Exportar CSV" for any role,
-"Importar CSV" for `admin` alone, the same split the rest of the catalogue keeps. On a
-phone they shrink to their icon, because three labelled buttons do not fit beside the
-title.
-
-The export goes through `fetch` and a `Blob` rather than a link to the URL: a plain
-`<a href>` cannot carry the Bearer token, so `apiDownload` requests the file, names it
-from the `Content-Disposition` the API sends, and clicks a link it then throws away.
-That header is not exposed to cross-origin JavaScript by default, which is why the
-backend's `cors()` now lists it — otherwise the browser hides it and the file has to
-be named by the client, in a second place that can drift from the first. The export
-sends the filters that are on screen, minus the pagination, through the same
-`toQuery` the list uses.
-
-`ImportDialog` never writes on its own. Picking a file reads it with the native
-`file.text()` and asks the API what it *would* do; changing between "Reemplazar" and
-"Sumar" asks again; only "Importar" repeats the request with `dryRun=false`. It is one
-mutation for both steps rather than two, because it is one request — the result
-carries the flag back, so the dialog knows which of the two it is showing. The report
-is rendered from a `useDeferredValue` copy with its figures in a `useMemo`, so a
-hundred-row error list paints in the background instead of locking the dialog, and the
-table dims while the deferred value catches up. The errors keep the wording the API
-sends, naming the column that failed: they are read against the spreadsheet, where
-that is the only name that helps. Only the refusals about the file as a whole are
-translated.
-
-A real import invalidates more than a movement does: the list, every product sheet,
-the facets — an import can introduce a category the filters must offer at once — the
-ledger, and the panel's figures.
-
-## Seed data
-
-`npm run seed -w @ordo/backend` builds the development database from four CSV files
-in `backend/seed/`, read with `node:fs`. They are related by natural keys rather
-than ids, so they stay editable in a spreadsheet:
-
-| File | Key columns |
+| Tokens | What they cover |
 |---|---|
-| `businesses.csv` | `slug` |
-| `users.csv` | `businessSlug`, `email` |
-| `products.csv` | `businessSlug`, `sku` |
-| `movements.csv` | `businessSlug`, `sku`, `userEmail` |
+| `--bg`, `--surface`, `--surface-2`, `--fg`, `--fg-muted`, `--border` | the three neutral layers, inverted by the `.dark` class on `<html>` |
+| `--accent`, `--accent-fg` | the tenant's own colour, set at runtime after login |
+| `--font-display` | Space Grotesk, for headings and the brand |
+| `--spacing-page-x`, `--spacing-page-y` | the frame every screen sits in |
 
-The seed wipes the four collections, resolves those keys to ObjectIds in memory,
-and then replays the ledger. The `stock` column in `products.csv` is the product's
-**opening** stock, recorded as an `in` with reason "Stock inicial"; movements are
-applied oldest first, each one updating the running stock and storing it as its
-`resultingStock`; and the final running value is what the product is saved with. An
-`out` larger than the stock available at that point is skipped with a warning
-rather than producing a negative stock.
+The app is mobile-first: each screen is designed for the narrow viewport and
+layered up at `sm` and `md`.
 
-`movements.csv` dates each row with a relative `daysAgo` instead of an absolute
-date, so a database seeded today always looks recently active. Those explicit dates
-are why the movements are inserted with Mongoose's automatic timestamps turned off.
+A handful of shared pieces exist because the same thing was being written on more
+than one screen, never ahead of that: `Page`/`PageHeader` (the only place the page
+frame is applied), `FilterChips`, `ListState`, `Pagination`, and the class helpers
+`buttonClasses`, `fieldClasses` and `tableHeadClasses`, which let a `<Link>` or a
+native `<input>` look exactly like its component counterpart instead of restating
+its classes.
 
-## Dashboard panel
+Two hooks carry the list behaviour both the inventory and the ledger need:
+`useUrlParams` keeps a list's filters in the query string — so a filtered view is
+shareable and the phone's back button walks it — and `usePage` returns to the first
+page whenever those filters change.
 
-Four figures (product count, inventory value, low stock, out of stock) from
-`GET /dashboard/stats`, and two charts from `GET /dashboard/inventory-breakdown`.
-The stock cards link into the inventory pre-filtered by that status: the filter is
-read from the URL (`?stockStatus=low|out`) rather than component state, so the panel
-can deep-link into it and a hand-edited value falls back to "all" instead of
-reaching the API.
+## Domains
 
-Both charts derive from the same snapshot, because there is no stock history yet —
-nothing in the data model records movement over time, so only the composition of
-the present can be charted, never a trend.
-
-- **Capital by category** — horizontal bars, ranked. Answers where the money is
-  parked. Horizontal because category names are words that need room, and bars
-  rather than a pie because comparing areas fails exactly where the chart has to
-  work, between the second and third biggest ranges. Past eight categories the tail
-  folds into one "Otras" bar. Each bar carries its value at the tip, so the chart is
-  readable without hovering.
-- **Capital concentration** — the running share of inventory value across the
-  products ranked by value. Answers which references hold the capital and must
-  never run out. Deliberately *not* the classic Pareto's two y-axes (currency left,
-  percent right): two scales aligned arbitrarily invent a relationship the data does
-  not have, so both measures are expressed as a share of the same total on one axis.
-  An `80%` reference line marks the usual ABC boundary.
-
-Both are single-series and monochrome. With one series there is no identity to
-encode, so bar length and curve height carry the meaning and colour carries none;
-amber and the accent stay reserved for stock status, and the ledger's three tints for
-the movement type, where they already mean something. Chart colours are the raw theme tokens (`--fg`, `--border`, `--surface`)
-passed as SVG attributes, so the light/dark toggle repaints the charts with no
-second palette to maintain.
-
-Recharts weighs about 110 kB gzipped, more than the rest of the app's runtime put
-together, so the whole charting layer lives in `features/dashboard/charts/` and
-`InventoryCharts` is the one module that imports it. The panel pulls that module in
-with `React.lazy`, so it builds into its own chunk and the four figures — the reason
-to open the panel — paint without waiting for it. The folder boundary and the chunk
-boundary are the same line, which is why the charts are grouped rather than sitting
-flat beside the page.
+- [Tenancy and authentication](./domains/auth.md) — how a request is scoped to one
+  business, the login flow, and what each role may do.
+- [Inventory](./domains/inventory.md) — the Product model, the derived stock
+  status, the list and the catalogue's UI.
+- [Stock movements](./domains/movements.md) — the append-only ledger, every path
+  that moves stock, and why an employee may write to it.
+- [CSV](./domains/csv.md) — the dependency-free parser, the import and export path,
+  and the seed built from the same files.
+- [Dashboard panel](./domains/dashboard.md) — the four figures and the two charts.
 
 ## HTTP API reference
 

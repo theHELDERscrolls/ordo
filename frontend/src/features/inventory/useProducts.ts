@@ -1,7 +1,7 @@
 import type { ProductListResponse, StockStatus } from '@ordo/shared';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { apiFetch } from '@/core/api/api';
+import { apiFetch, toQuery } from '@/core/api/api';
 import { useToken } from '@/core/auth/use-token';
 
 export type ProductFilters = {
@@ -14,18 +14,6 @@ export type ProductFilters = {
   page?: number;
   limit?: number;
 };
-
-/**
- * The filters as the query string the API understands, skipping what is unset. Shared
- * with the CSV export, which has to ask for exactly what the list is showing.
- */
-export function toQuery(filters: ProductFilters): string {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(filters)) {
-    if (value !== undefined && value !== '') params.set(key, String(value));
-  }
-  return params.toString();
-}
 
 /**
  * The tenant's products. Filters go straight into the query string the API already
