@@ -19,10 +19,10 @@
     "@ordo/shared": "^1.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
+    "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.8.1",
-    "zod": "^4.4.3"
+    "mongoose": "^9.11.4",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -30,12 +30,12 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.13.3",
-    "eslint": "^10.8.0",
+    "@types/node": "^24.19.2",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0",
-    "vitest": "^4.1.10"
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^4.1.12"
   }
 }
